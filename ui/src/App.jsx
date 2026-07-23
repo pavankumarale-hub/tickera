@@ -1226,7 +1226,7 @@ export default function App() {
                   )}
                 </div>
               </div>
-            </div>
+            </div>}
 
             {/* Detail panel */}
             <div className={`detail-panel ${selectedBooking ? 'open' : ''}`}>
