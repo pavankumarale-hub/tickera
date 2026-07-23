@@ -8,6 +8,8 @@ import com.pavankumar.tickera.booking.coreapi.events.BookingEvents.BookingPaidEv
 import com.pavankumar.tickera.booking.query.BookingQueries.FindAllBookingsQuery;
 import com.pavankumar.tickera.booking.query.BookingQueries.FindBookingByIdQuery;
 import com.pavankumar.tickera.booking.query.BookingQueries.FindBookingsByCustomerQuery;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
 import org.axonframework.eventhandling.Timestamp;
@@ -41,10 +43,27 @@ public class BookingProjection {
 
     private final BookingSummaryRepository repository;
     private final CacheManager cacheManager;
+    private final Counter createdCounter;
+    private final Counter confirmedCounter;
+    private final Counter paidCounter;
+    private final Counter cancelledCounter;
 
-    public BookingProjection(BookingSummaryRepository repository, CacheManager cacheManager) {
+    public BookingProjection(BookingSummaryRepository repository,
+                             CacheManager cacheManager,
+                             MeterRegistry registry) {
         this.repository = repository;
         this.cacheManager = cacheManager;
+        this.createdCounter   = transitionCounter(registry, "CREATED");
+        this.confirmedCounter = transitionCounter(registry, "CONFIRMED");
+        this.paidCounter      = transitionCounter(registry, "PAID");
+        this.cancelledCounter = transitionCounter(registry, "CANCELLED");
+    }
+
+    private static Counter transitionCounter(MeterRegistry registry, String toStatus) {
+        return Counter.builder("tickera.booking.transitions")
+                .tag("to", toStatus)
+                .description("Cumulative booking state-machine transitions by target status")
+                .register(registry);
     }
 
     @EventHandler
@@ -60,11 +79,13 @@ public class BookingProjection {
         summary.setUpdatedAt(timestamp);
         repository.save(summary);
         evict(event.bookingId());
+        createdCounter.increment();
     }
 
     @EventHandler
     public void on(BookingConfirmedEvent event, @Timestamp Instant timestamp) {
         updateStatus(event.bookingId(), BookingStatus.CONFIRMED, timestamp);
+        confirmedCounter.increment();
     }
 
     @EventHandler
@@ -76,11 +97,13 @@ public class BookingProjection {
             repository.save(summary);
         });
         evict(event.bookingId());
+        paidCounter.increment();
     }
 
     @EventHandler
     public void on(BookingCancelledEvent event, @Timestamp Instant timestamp) {
         updateStatus(event.bookingId(), BookingStatus.CANCELLED, timestamp);
+        cancelledCounter.increment();
     }
 
     private void updateStatus(String bookingId, BookingStatus status, Instant timestamp) {

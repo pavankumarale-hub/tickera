@@ -1,0 +1,217 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "title": "Tickera — Service Overview",
+  "uid": "tickera-overview",
+  "schemaVersion": 39,
+  "version": 2,
+  "time": { "from": "now-30m", "to": "now" },
+  "refresh": "10s",
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "label": "Service",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "query": "label_values(http_server_requests_seconds_count, application)",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": { "text": "All", "value": "$__all" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 100,
+      "type": "row",
+      "title": "HTTP Traffic",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "id": 1,
+      "title": "Request Rate (req/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "reqps", "color": { "mode": "palette-classic" } }
+      },
+      "options": { "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "expr": "sum by (application) (rate(http_server_requests_seconds_count{application=~\"$service\"}[1m]))",
+          "legendFormat": "{{application}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "HTTP p95 Latency (s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "s", "color": { "mode": "palette-classic" } }
+      },
+      "options": { "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (application, le) (rate(http_server_requests_seconds_bucket{application=~\"$service\"}[5m])))",
+          "legendFormat": "{{application}} p95"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "HTTP 5xx Error Rate (req/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": { "mode": "fixed", "fixedColor": "red" }
+        }
+      },
+      "options": { "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "expr": "sum by (application) (rate(http_server_requests_seconds_count{application=~\"$service\",status=~\"5..\"}[1m]))",
+          "legendFormat": "{{application}} 5xx"
+        }
+      ]
+    },
+    {
+      "id": 101,
+      "type": "row",
+      "title": "Booking Funnel & Payment",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 }
+    },
+    {
+      "id": 4,
+      "title": "Booking State Transitions (transitions/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "ops", "color": { "mode": "palette-classic" } }
+      },
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "table", "placement": "right" }
+      },
+      "targets": [
+        {
+          "expr": "rate(tickera_booking_transitions_total{to=\"CREATED\"}[1m])",
+          "legendFormat": "Created"
+        },
+        {
+          "expr": "rate(tickera_booking_transitions_total{to=\"CONFIRMED\"}[1m])",
+          "legendFormat": "Confirmed"
+        },
+        {
+          "expr": "rate(tickera_booking_transitions_total{to=\"PAID\"}[1m])",
+          "legendFormat": "Paid"
+        },
+        {
+          "expr": "rate(tickera_booking_transitions_total{to=\"CANCELLED\"}[1m])",
+          "legendFormat": "Cancelled"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Redis Idempotency Guard (events/s)",
+      "description": "First-delivery events processed vs. Kafka redeliveries blocked. A non-zero duplicate rate proves the guard is working under at-least-once delivery.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 10 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "ops", "color": { "mode": "palette-classic" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Duplicates blocked" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }
+            ]
+          }
+        ]
+      },
+      "options": { "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "expr": "rate(tickera_payment_idempotency_total{result=\"first_delivery\"}[1m])",
+          "legendFormat": "First delivery"
+        },
+        {
+          "expr": "rate(tickera_payment_idempotency_total{result=\"duplicate\"}[1m])",
+          "legendFormat": "Duplicates blocked"
+        }
+      ]
+    },
+    {
+      "id": 102,
+      "type": "row",
+      "title": "Infrastructure",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 }
+    },
+    {
+      "id": 6,
+      "title": "Kafka Consumer Records (records/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 19 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "ops", "color": { "mode": "palette-classic" } }
+      },
+      "options": { "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "expr": "sum by (application) (rate(kafka_consumer_fetch_manager_records_consumed_total{application=~\"$service\"}[1m]))",
+          "legendFormat": "{{application}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "JVM Heap Used (bytes)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 19 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "bytes", "color": { "mode": "palette-classic" } }
+      },
+      "options": { "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "expr": "sum by (application) (jvm_memory_used_bytes{area=\"heap\",application=~\"$service\"})",
+          "legendFormat": "{{application}}"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "JVM GC Pause Rate (pauses/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 19 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "ops", "color": { "mode": "palette-classic" } }
+      },
+      "options": { "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "expr": "sum by (application) (rate(jvm_gc_pause_seconds_count{application=~\"$service\"}[1m]))",
+          "legendFormat": "{{application}} GC"
+        }
+      ]
+    }
+  ]
+}
