@@ -5,6 +5,8 @@ WORKDIR /workspace
 COPY pom.xml .
 COPY common-events/pom.xml common-events/pom.xml
 COPY booking-service/pom.xml booking-service/pom.xml
+COPY payment-service/pom.xml payment-service/pom.xml
+COPY notification-service/pom.xml notification-service/pom.xml
 # Warm the dependency cache before copying sources
 RUN mvn -B -pl booking-service -am dependency:go-offline || true
 COPY common-events/src common-events/src
