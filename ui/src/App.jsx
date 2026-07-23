@@ -711,14 +711,309 @@ function BookingRow({ booking, selected, onClick, onAction }) {
   )
 }
 
+/* ─────────────────────────────────── overview page ────────────────────────── */
+
+function OverviewPage({ bookings, onNavigate }) {
+  const byStatus = s => bookings.filter(b => b.status === s).length
+  const paidRev  = bookings.filter(b => b.status === 'PAID')
+                           .reduce((s, b) => s + Number(b.amount ?? 0), 0)
+  const recent   = [...bookings].slice(0, 6)
+
+  return (
+    <div className="page-content">
+      <StatsRow bookings={bookings} />
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        {/* Recent activity */}
+        <div className="section">
+          <div className="section-header">
+            <span className="section-title"><Activity size={14} />Recent activity</span>
+            <button className="btn btn-ghost" style={{ height: 26, fontSize: 11 }}
+              onClick={() => onNavigate('bookings')}>
+              View all <ChevronRight size={12} />
+            </button>
+          </div>
+          {recent.length === 0 ? (
+            <div className="empty-state" style={{ padding: '32px 24px' }}>
+              <div className="empty-icon"><Ticket size={18} /></div>
+              <div className="empty-title">No bookings yet</div>
+            </div>
+          ) : recent.map(b => (
+            <div key={b.bookingId} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '10px 20px', borderBottom: '1px solid var(--bd)',
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--t1)',
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {b.eventName}
+                </span>
+                <span style={{ fontSize: 11, color: 'var(--t3)', fontFamily: 'JetBrains Mono, monospace' }}>
+                  {b.customerId}
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--t1)',
+                  fontVariantNumeric: 'tabular-nums' }}>
+                  {fmtMoney(b.amount, b.currency)}
+                </span>
+                <StatusBadge status={b.status} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* System status */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="section">
+            <div className="section-header">
+              <span className="section-title"><Zap size={14} />Status breakdown</span>
+            </div>
+            <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {['CREATED','CONFIRMED','PAID','CANCELLED'].map(s => {
+                const count = byStatus(s)
+                const pct   = bookings.length ? Math.round(count / bookings.length * 100) : 0
+                const meta  = STATUS_META[s]
+                return (
+                  <div key={s}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between',
+                      marginBottom: 5, fontSize: 12 }}>
+                      <span className={`status-badge ${meta.badgeClass}`} style={{ fontSize: 11 }}>
+                        <span className={`status-dot ${meta.dotClass}`} />
+                        {meta.label}
+                      </span>
+                      <span style={{ color: 'var(--t2)', fontVariantNumeric: 'tabular-nums' }}>
+                        {count} <span style={{ color: 'var(--t4)' }}>({pct}%)</span>
+                      </span>
+                    </div>
+                    <div style={{ height: 4, background: 'var(--s3)', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{
+                        height: '100%', borderRadius: 2, width: `${pct}%`,
+                        background: s === 'PAID' ? 'var(--paid-c)'
+                          : s === 'CONFIRMED' ? 'var(--confirmed-c)'
+                          : s === 'CANCELLED' ? 'var(--cancelled-c)'
+                          : 'var(--a2)',
+                        transition: 'width 600ms var(--spring)',
+                      }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="section">
+            <div className="section-header">
+              <span className="section-title"><ArrowUpRight size={14} />Quick links</span>
+            </div>
+            <div style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {[
+                { label: 'Grafana dashboard',        href: 'http://localhost:3000' },
+                { label: 'Booking API (Swagger)',     href: 'http://localhost:8081/swagger-ui.html' },
+                { label: 'Payment API (Swagger)',     href: 'http://localhost:8082/swagger-ui.html' },
+                { label: 'Notification API (Swagger)',href: 'http://localhost:8083/swagger-ui.html' },
+                { label: 'Prometheus metrics',        href: 'http://localhost:9090' },
+              ].map(l => (
+                <a key={l.href} href={l.href} target="_blank" rel="noreferrer"
+                  style={{ display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '7px 8px', borderRadius: 'var(--r2)',
+                    fontSize: 12, color: 'var(--t2)', textDecoration: 'none',
+                    transition: 'background 120ms, color 120ms' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--s3)'; e.currentTarget.style.color = 'var(--t1)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = ''; e.currentTarget.style.color = '' }}>
+                  <ArrowUpRight size={12} style={{ color: 'var(--t4)', flexShrink: 0 }} />
+                  {l.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ─────────────────────────────────── payments page ─────────────────────────── */
+
+function PaymentsPage() {
+  const [payments, setPayments]   = useState(null)
+  const [error, setError]         = useState(null)
+
+  useEffect(() => {
+    getPayments().then(d => setPayments(Array.isArray(d) ? d : [])).catch(e => setError(e.message))
+  }, [])
+
+  const PM = { APPROVED: { c: 'var(--paid-c)', bg: 'var(--paid-bg)', bd: 'var(--paid-bd)' },
+               DECLINED:  { c: 'var(--danger)', bg: 'var(--danger-d)', bd: 'rgba(239,68,68,0.25)' } }
+
+  return (
+    <div className="page-content">
+      <div className="section">
+        <div className="section-header">
+          <span className="section-title">
+            <CreditCard size={14} />
+            Payments
+            {payments && <span className="topbar-count" style={{ marginLeft: 4 }}>{payments.length}</span>}
+          </span>
+        </div>
+
+        {/* header row */}
+        <div className="list-header" style={{ display: 'grid',
+          gridTemplateColumns: '110px 160px 160px 110px 80px', padding: '0 20px' }}>
+          {['Status','Payment ID','Booking ID','Amount','Date'].map((h,i) => (
+            <div key={h} className={`col${i >= 3 ? ' right' : ''}`}>{h}</div>
+          ))}
+        </div>
+
+        <div className="list-body">
+          {error ? (
+            <div className="error-bar" style={{ margin: 20 }}>
+              <AlertCircle size={14} />{error}
+            </div>
+          ) : payments === null ? (
+            <SkeletonRows n={4} />
+          ) : payments.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon"><CreditCard size={20} /></div>
+              <div className="empty-title">No payments yet</div>
+              <div className="empty-desc">Payments appear after a booking is confirmed.</div>
+            </div>
+          ) : [...payments].sort((a,b) => new Date(b.createdAt??0) - new Date(a.createdAt??0))
+              .map(p => {
+                const m = PM[p.status]
+                return (
+                  <div key={p.paymentId} style={{
+                    display: 'grid', gridTemplateColumns: '110px 160px 160px 110px 80px',
+                    alignItems: 'center', padding: '0 20px', height: 52,
+                    borderBottom: '1px solid var(--bd)', transition: 'background 100ms',
+                  }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+                    onMouseLeave={e => e.currentTarget.style.background = ''}>
+                    <div>
+                      {m && (
+                        <span className="status-badge"
+                          style={{ color: m.c, background: m.bg, borderColor: m.bd, fontSize: 11 }}>
+                          <span className="status-dot" style={{ background: m.c }} />
+                          {p.status}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mono" style={{ fontSize: 11, color: 'var(--t2)' }}>
+                      {shortId(p.paymentId)}
+                    </div>
+                    <div className="mono" style={{ fontSize: 11, color: 'var(--t3)' }}>
+                      {shortId(p.bookingId)}
+                    </div>
+                    <div style={{ textAlign: 'right', fontSize: 13, fontWeight: 600,
+                      color: 'var(--t1)', fontVariantNumeric: 'tabular-nums' }}>
+                      {fmtMoney(p.amount, p.currency)}
+                    </div>
+                    <div style={{ textAlign: 'right', fontSize: 12, color: 'var(--t3)' }}>
+                      {timeAgo(p.createdAt)}
+                    </div>
+                  </div>
+                )
+              })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ─────────────────────────────────── notifications page ────────────────────── */
+
+function NotificationsPage() {
+  const [notifs, setNotifs] = useState(null)
+  const [error, setError]   = useState(null)
+
+  useEffect(() => {
+    getNotifications().then(d => setNotifs(Array.isArray(d) ? d : [])).catch(e => setError(e.message))
+  }, [])
+
+  const CHANNEL_COLOR = {
+    EMAIL:  { c: '#60a5fa', bg: 'rgba(59,130,246,0.10)' },
+    SMS:    { c: '#34d399', bg: 'rgba(16,185,129,0.10)' },
+    PUSH:   { c: '#fbbf24', bg: 'rgba(245,158,11,0.10)' },
+    system: { c: 'var(--a3)', bg: 'var(--ad)' },
+  }
+
+  return (
+    <div className="page-content">
+      <div className="section">
+        <div className="section-header">
+          <span className="section-title">
+            <Bell size={14} />
+            Notifications
+            {notifs && <span className="topbar-count" style={{ marginLeft: 4 }}>{notifs.length}</span>}
+          </span>
+        </div>
+
+        <div className="list-body">
+          {error ? (
+            <div className="error-bar" style={{ margin: 20 }}>
+              <AlertCircle size={14} />{error}
+            </div>
+          ) : notifs === null ? (
+            <SkeletonRows n={4} />
+          ) : notifs.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon"><Bell size={20} /></div>
+              <div className="empty-title">No notifications yet</div>
+              <div className="empty-desc">Notifications are sent when bookings change state.</div>
+            </div>
+          ) : [...notifs].sort((a,b) => new Date(b.createdAt??0) - new Date(a.createdAt??0))
+              .map(n => {
+                const ch = (n.channel ?? 'system').toUpperCase()
+                const cm = CHANNEL_COLOR[ch] ?? CHANNEL_COLOR.system
+                return (
+                  <div key={n.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 14, padding: '12px 20px',
+                    borderBottom: '1px solid var(--bd)', transition: 'background 100ms',
+                  }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+                    onMouseLeave={e => e.currentTarget.style.background = ''}>
+                    <div style={{
+                      flexShrink: 0, width: 32, height: 32, borderRadius: 'var(--r2)',
+                      background: cm.bg, display: 'flex', alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                      <Bell size={13} color={cm.c} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, color: 'var(--t1)', lineHeight: 1.4 }}>
+                        {n.message}
+                      </div>
+                      <div style={{ display: 'flex', gap: 10, marginTop: 3, alignItems: 'center' }}>
+                        <span style={{
+                          fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
+                          color: cm.c, background: cm.bg, padding: '1px 6px',
+                          borderRadius: 3,
+                        }}>{ch}</span>
+                        <span className="mono" style={{ fontSize: 11, color: 'var(--t4)' }}>
+                          {shortId(n.bookingId)}
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--t3)', flexShrink: 0 }}>
+                      {timeAgo(n.createdAt)}
+                    </div>
+                  </div>
+                )
+              })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ─────────────────────────────────── sidebar ──────────────────────────────── */
 
-function Sidebar({ pollActive }) {
+function Sidebar({ pollActive, page, onNavigate }) {
   const navItems = [
-    { icon: LayoutDashboard, label: 'Overview', active: false },
-    { icon: Ticket,          label: 'Bookings',  active: true  },
-    { icon: CreditCard,      label: 'Payments',  active: false },
-    { icon: Bell,            label: 'Notifications', active: false },
+    { key: 'overview',       icon: LayoutDashboard, label: 'Overview' },
+    { key: 'bookings',       icon: Ticket,          label: 'Bookings' },
+    { key: 'payments',       icon: CreditCard,      label: 'Payments' },
+    { key: 'notifications',  icon: Bell,            label: 'Notifications' },
   ]
 
   return (
@@ -735,7 +1030,11 @@ function Sidebar({ pollActive }) {
       <nav className="sidebar-nav">
         <div className="nav-section-label">Main</div>
         {navItems.map(item => (
-          <button key={item.label} className={`nav-item ${item.active ? 'active' : ''}`}>
+          <button
+            key={item.key}
+            className={`nav-item ${page === item.key ? 'active' : ''}`}
+            onClick={() => onNavigate(item.key)}
+          >
             <item.icon size={15} />
             {item.label}
           </button>
@@ -765,12 +1064,22 @@ function Sidebar({ pollActive }) {
 
 /* ─────────────────────────────────── app ──────────────────────────────────── */
 
+const PAGE_TITLES = {
+  overview:      'Overview',
+  bookings:      'Bookings',
+  payments:      'Payments',
+  notifications: 'Notifications',
+}
+
 export default function App() {
+  const [page, setPage]             = useState('bookings')
   const [bookings, setBookings]     = useState([])
   const [loading, setLoading]       = useState(true)
   const [selectedId, setSelectedId] = useState(null)
   const [showCreate, setShowCreate] = useState(false)
   const timerRef = useRef(null)
+
+  const navigate = (p) => { setPage(p); setSelectedId(null) }
 
   const fetchAll = useCallback(async () => {
     try {
@@ -815,17 +1124,17 @@ export default function App() {
   return (
     <ToastProvider>
       <div className="app-shell">
-        <Sidebar pollActive={hasActive} />
+        <Sidebar pollActive={hasActive} page={page} onNavigate={navigate} />
 
         <div className="main-area">
           {/* Top bar */}
           <div className="topbar">
             <div className="topbar-left">
-              <span className="topbar-title">Bookings</span>
-              {!loading && (
+              <span className="topbar-title">{PAGE_TITLES[page]}</span>
+              {page === 'bookings' && !loading && (
                 <span className="topbar-count">{bookings.length}</span>
               )}
-              {hasActive && (
+              {page === 'bookings' && hasActive && (
                 <div className="polling-badge">
                   <span className="spinner-sm" />
                   Live
@@ -833,14 +1142,16 @@ export default function App() {
               )}
             </div>
             <div className="topbar-right">
-              <button
-                className="btn btn-ghost btn-icon"
-                onClick={fetchAll}
-                aria-label="Refresh"
-                title="Refresh"
-              >
-                <RefreshCw size={13} />
-              </button>
+              {page === 'bookings' && (
+                <button
+                  className="btn btn-ghost btn-icon"
+                  onClick={fetchAll}
+                  aria-label="Refresh"
+                  title="Refresh"
+                >
+                  <RefreshCw size={13} />
+                </button>
+              )}
               <button
                 className="btn btn-primary"
                 onClick={() => setShowCreate(true)}
@@ -853,8 +1164,15 @@ export default function App() {
 
           {/* Body: content + panel */}
           <div className="body-wrap">
-            {/* Scrollable content */}
-            <div className="page-content">
+            {/* Non-bookings pages (no detail panel) */}
+            {page === 'overview' && (
+              <OverviewPage bookings={bookings} onNavigate={navigate} />
+            )}
+            {page === 'payments' && <PaymentsPage />}
+            {page === 'notifications' && <NotificationsPage />}
+
+            {/* Bookings page */}
+            {page === 'bookings' && <div className="page-content">
               <StatsRow bookings={bookings} />
 
               <div className="section">
