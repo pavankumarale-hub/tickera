@@ -159,6 +159,18 @@ services:
       DB_PASSWORD: tickera
       KAFKA_BOOTSTRAP: kafka:29092
 
+  # ----------------------------------------------------------------------- ui
+  ui:
+    build:
+      context: ui
+      dockerfile: Dockerfile
+    depends_on:
+      - booking-service
+      - payment-service
+      - notification-service
+    ports:
+      - "3001:80"
+
   # -------------------------------------------------------------- observability
   prometheus:
     image: prom/prometheus:v2.51.0
