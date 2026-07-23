@@ -8,17 +8,22 @@ services:
   # ----------------------------------------------------------------- messaging
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.1
+    platform: linux/amd64
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     healthcheck:
-      test: ["CMD-SHELL", "echo ruok | nc localhost 2181 | grep imok"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      # cub is Confluent's built-in health tool — available in all cp-* images.
+      # nc (netcat) is not installed, so the old echo|nc check always failed.
+      test: ["CMD", "cub", "zk-ready", "localhost:2181", "30"]
+      interval: 15s
+      timeout: 35s
+      retries: 10
+      start_period: 30s
 
   kafka:
     image: confluentinc/cp-kafka:7.5.1
+    platform: linux/amd64
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -34,10 +39,11 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     healthcheck:
-      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:29092", "--list"]
+      test: ["CMD", "cub", "kafka-ready", "1", "30", "-b", "localhost:29092"]
       interval: 15s
-      timeout: 10s
+      timeout: 35s
       retries: 10
+      start_period: 30s
 
   # -------------------------------------------------------------------- caches
   redis:
