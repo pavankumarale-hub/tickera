@@ -6,7 +6,7 @@
 -- global_index uses a named sequence to match Axon's @SequenceGenerator.
 -- ============================================================
 
-CREATE SEQUENCE domain_event_entry_seq;
+CREATE SEQUENCE domain_event_entry_seq INCREMENT BY 50;
 
 CREATE TABLE domain_event_entry (
     global_index         BIGINT       NOT NULL,

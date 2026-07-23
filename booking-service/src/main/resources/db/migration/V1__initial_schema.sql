@@ -9,7 +9,7 @@
 --   - association_value_entry.id similarly needs its own named sequence.
 -- ============================================================
 
-CREATE SEQUENCE domain_event_entry_seq;
+CREATE SEQUENCE domain_event_entry_seq INCREMENT BY 50;
 
 CREATE TABLE domain_event_entry (
     global_index         BIGINT       NOT NULL,
@@ -59,7 +59,7 @@ CREATE TABLE saga_entry (
     PRIMARY KEY (saga_id)
 );
 
-CREATE SEQUENCE association_value_entry_seq;
+CREATE SEQUENCE association_value_entry_seq INCREMENT BY 50;
 
 CREATE TABLE association_value_entry (
     id                BIGINT       NOT NULL,
