@@ -1,0 +1,62 @@
+openapi: 3.0.3
+info:
+  title: TicketHub Payment API
+  version: v1
+  description: >
+    Read model over payment outcomes. Payments are created by reacting to the
+    BookingConfirmed Kafka event, not via HTTP — so this API is query-only.
+servers:
+  - url: http://localhost:8082
+    description: Local
+tags:
+  - name: Payments
+paths:
+  /api/v1/payments:
+    get:
+      tags: [Payments]
+      summary: List payments (optionally by booking)
+      operationId: listPayments
+      parameters:
+        - in: query
+          name: bookingId
+          schema: { type: string }
+      responses:
+        '200':
+          description: Payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/PaymentResponse' }
+  /api/v1/payments/{paymentId}:
+    get:
+      tags: [Payments]
+      summary: Get a payment by id
+      operationId: getPayment
+      parameters:
+        - in: path
+          name: paymentId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Payment
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentResponse' }
+        '404':
+          description: Not found
+components:
+  schemas:
+    PaymentResponse:
+      type: object
+      properties:
+        paymentId: { type: string, format: uuid }
+        bookingId: { type: string, format: uuid }
+        amount: { type: number, format: double, nullable: true }
+        currency: { type: string, nullable: true }
+        status:
+          type: string
+          enum: [COMPLETED, DECLINED]
+        reason: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }

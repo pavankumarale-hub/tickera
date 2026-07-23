@@ -1,0 +1,144 @@
+openapi: 3.0.3
+info:
+  title: TicketHub Booking API
+  version: v1
+  description: >
+    Command/query API for the event-sourced booking lifecycle
+    (CREATED → CONFIRMED → PAID / CANCELLED).
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:8081
+    description: Local
+tags:
+  - name: Bookings
+paths:
+  /api/v1/bookings:
+    post:
+      tags: [Bookings]
+      summary: Create a booking (CREATED)
+      operationId: createBooking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateBookingRequest' }
+      responses:
+        '201':
+          description: Booking created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookingResponse' }
+        '400': { $ref: '#/components/responses/Problem' }
+    get:
+      tags: [Bookings]
+      summary: List bookings (optionally by customer)
+      operationId: listBookings
+      parameters:
+        - in: query
+          name: customerId
+          schema: { type: string }
+      responses:
+        '200':
+          description: Bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/BookingResponse' }
+  /api/v1/bookings/{bookingId}:
+    get:
+      tags: [Bookings]
+      summary: Get a booking by id
+      operationId: getBooking
+      parameters:
+        - $ref: '#/components/parameters/BookingId'
+      responses:
+        '200':
+          description: Booking
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookingResponse' }
+        '404': { $ref: '#/components/responses/Problem' }
+  /api/v1/bookings/{bookingId}/confirm:
+    post:
+      tags: [Bookings]
+      summary: Confirm a booking (reserve seats, start payment saga)
+      operationId: confirmBooking
+      parameters:
+        - $ref: '#/components/parameters/BookingId'
+      responses:
+        '202':
+          description: Confirmed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookingResponse' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /api/v1/bookings/{bookingId}/cancel:
+    post:
+      tags: [Bookings]
+      summary: Cancel a booking
+      operationId: cancelBooking
+      parameters:
+        - $ref: '#/components/parameters/BookingId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CancelBookingRequest' }
+      responses:
+        '200':
+          description: Cancelled
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookingResponse' }
+        '409': { $ref: '#/components/responses/Problem' }
+components:
+  parameters:
+    BookingId:
+      in: path
+      name: bookingId
+      required: true
+      schema: { type: string, format: uuid }
+  responses:
+    Problem:
+      description: RFC-7807 problem detail
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetail' }
+  schemas:
+    CreateBookingRequest:
+      type: object
+      required: [customerId, eventName, seats, amount, currency]
+      properties:
+        customerId: { type: string }
+        eventName: { type: string }
+        seats: { type: integer, minimum: 1 }
+        amount: { type: number, format: double, minimum: 0.01 }
+        currency: { type: string, minLength: 3, maxLength: 3, example: USD }
+    CancelBookingRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string }
+    BookingResponse:
+      type: object
+      properties:
+        bookingId: { type: string, format: uuid }
+        customerId: { type: string }
+        eventName: { type: string }
+        seats: { type: integer }
+        amount: { type: number, format: double }
+        currency: { type: string }
+        status:
+          type: string
+          enum: [CREATED, CONFIRMED, PAID, CANCELLED]
+        paymentId: { type: string, nullable: true }
+        updatedAt: { type: string, format: date-time }
+    ProblemDetail:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }

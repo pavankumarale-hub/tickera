@@ -1,0 +1,33 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+*.log
+*.jar
+!maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build / tooling
+build/
+out/
+.gradle/
+# Note: the repo-root /pacts folder IS tracked — it is the shared contract
+# exchange between the consumer and provider tests.
+
+# Env
+.env
+
+# Local tooling
+.claude/
