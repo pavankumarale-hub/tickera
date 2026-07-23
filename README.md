@@ -1,4 +1,4 @@
-# TicketHub — Event-Driven Ticket Booking (Axon · Kafka · CQRS/ES)
+# Tickera — Event-Driven Ticket Booking (Axon · Kafka · CQRS/ES)
 
 A public, production-shaped microservices system that books event tickets. It is
 built to demonstrate the distributed-systems patterns I work with day to day:
@@ -144,7 +144,7 @@ independently without a shared integration environment.
 ## Observability
 
 - Each service exposes `/actuator/health`, `/actuator/prometheus`, `/actuator/metrics`.
-- Prometheus scrapes all three; Grafana auto-provisions a **TicketHub Overview**
+- Prometheus scrapes all three; Grafana auto-provisions a **Tickera Overview**
   dashboard (request rate, p95 latency, JVM heap, Kafka consumption).
 - Grafana: http://localhost:3000 · Prometheus: http://localhost:9090
 
@@ -160,7 +160,7 @@ independently without a shared integration environment.
 ## Repository layout
 
 ```
-tickethub/
+tickera/
 ├── common-events/          # shared Kafka integration-event contracts
 ├── booking-service/        # Axon CQRS/ES + saga (the core)
 ├── payment-service/        # Axon CQRS/ES + Redis idempotency

@@ -7,8 +7,8 @@ spring:
 
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5433/payment_db}
-    username: ${DB_USER:tickethub}
-    password: ${DB_PASSWORD:tickethub}
+    username: ${DB_USER:tickera}
+    password: ${DB_PASSWORD:tickera}
   jpa:
     hibernate:
       ddl-auto: update
@@ -32,7 +32,7 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: com.pavankumar.tickethub.common.events
+        spring.json.trusted.packages: com.pavankumar.tickera.common.events
 
 axon:
   axonserver:

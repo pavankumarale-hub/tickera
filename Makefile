@@ -1,4 +1,4 @@
-# TicketHub developer shortcuts
+# Tickera developer shortcuts
 .DEFAULT_GOAL := help
 
 .PHONY: help build test up down logs demo pacts clean

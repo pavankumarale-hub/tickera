@@ -1,9 +1,9 @@
 apiVersion: 1
 
 providers:
-  - name: TicketHub
+  - name: Tickera
     orgId: 1
-    folder: TicketHub
+    folder: Tickera
     type: file
     disableDeletion: false
     editable: true

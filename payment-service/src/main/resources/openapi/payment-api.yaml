@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: TicketHub Payment API
+  title: Tickera Payment API
   version: v1
   description: >
     Read model over payment outcomes. Payments are created by reacting to the

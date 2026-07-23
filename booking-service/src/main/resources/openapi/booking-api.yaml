@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: TicketHub Booking API
+  title: Tickera Booking API
   version: v1
   description: >
     Command/query API for the event-sourced booking lifecycle

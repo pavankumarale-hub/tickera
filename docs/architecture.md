@@ -1,6 +1,6 @@
-# TicketHub — Architecture
+# Tickera — Architecture
 
-TicketHub is a small but production-shaped event-driven system for booking event
+Tickera is a small but production-shaped event-driven system for booking event
 tickets. It exists to demonstrate **CQRS + event sourcing (Axon)** inside each
 service, **Kafka** as the integration backbone between services, a **Saga** for
 cross-service orchestration, **Redis** for idempotency and read caching, and

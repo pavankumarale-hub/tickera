@@ -5,13 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.pavankumar.tickethub</groupId>
-        <artifactId>tickethub-parent</artifactId>
+        <groupId>com.pavankumar.tickera</groupId>
+        <artifactId>tickera-parent</artifactId>
         <version>0.1.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>common-events</artifactId>
-    <name>TicketHub :: Common Integration Events</name>
+    <name>Tickera :: Common Integration Events</name>
     <description>Kafka integration-event contracts shared across bounded contexts.</description>
 
     <dependencies>
