@@ -1,14 +1,15 @@
 -- ============================================================
 -- Axon Framework 4.9 JPA schema (PostgreSQL)
--- payment-service has no saga, so no saga_entry / association tables.
+-- payment-service: event store + tracking tokens only (no saga).
 --
--- Binary columns use OID rather than BYTEA because Axon's JPA entities
--- annotate them with @Lob byte[], and Hibernate 6 maps @Lob byte[] to
--- PostgreSQL OID by default.
+-- Binary columns use OID (@Lob byte[] → Hibernate 6 → oid).
+-- global_index uses a named sequence to match Axon's @SequenceGenerator.
 -- ============================================================
 
+CREATE SEQUENCE domain_event_entry_seq;
+
 CREATE TABLE domain_event_entry (
-    global_index         BIGSERIAL    NOT NULL,
+    global_index         BIGINT       NOT NULL,
     event_identifier     VARCHAR(255) NOT NULL,
     meta_data            OID,
     payload              OID          NOT NULL,
@@ -16,7 +17,7 @@ CREATE TABLE domain_event_entry (
     payload_type         VARCHAR(255) NOT NULL,
     time_stamp           VARCHAR(255) NOT NULL,
     aggregate_identifier VARCHAR(255) NOT NULL,
-    sequence_number      BIGINT       NOT NULL,
+    sequence_number      BIGINT,
     type                 VARCHAR(255),
     PRIMARY KEY (global_index),
     UNIQUE (aggregate_identifier, sequence_number, type),

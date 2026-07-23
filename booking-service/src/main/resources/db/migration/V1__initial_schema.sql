@@ -1,16 +1,18 @@
 -- ============================================================
 -- Axon Framework 4.9 JPA schema (PostgreSQL)
--- Event store, tracking tokens, and saga tables.
 --
--- Binary columns (payload, meta_data, token, serialized_saga) use OID rather
--- than BYTEA. Axon's JPA entities annotate these fields with @Lob byte[], and
--- Hibernate 6 (Spring Boot 3.x) maps @Lob byte[] to PostgreSQL OID by default.
--- Using BYTEA here would cause a type-mismatch error at runtime.
+-- Rules derived from Axon's own entity annotations:
+--   - Binary columns (@Lob byte[]) must be OID, not BYTEA — Hibernate 6 maps
+--     @Lob byte[] to PostgreSQL oid by default.
+--   - global_index uses @SequenceGenerator(sequenceName="domain_event_entry_seq").
+--     BIGSERIAL would create domain_event_entry_global_index_seq (wrong name).
+--   - association_value_entry.id similarly needs its own named sequence.
 -- ============================================================
 
--- Event store: one row per domain event, append-only.
+CREATE SEQUENCE domain_event_entry_seq;
+
 CREATE TABLE domain_event_entry (
-    global_index         BIGSERIAL    NOT NULL,
+    global_index         BIGINT       NOT NULL,
     event_identifier     VARCHAR(255) NOT NULL,
     meta_data            OID,
     payload              OID          NOT NULL,
@@ -18,14 +20,13 @@ CREATE TABLE domain_event_entry (
     payload_type         VARCHAR(255) NOT NULL,
     time_stamp           VARCHAR(255) NOT NULL,
     aggregate_identifier VARCHAR(255) NOT NULL,
-    sequence_number      BIGINT       NOT NULL,
+    sequence_number      BIGINT,
     type                 VARCHAR(255),
     PRIMARY KEY (global_index),
     UNIQUE (aggregate_identifier, sequence_number, type),
     UNIQUE (event_identifier)
 );
 
--- Snapshots reduce replay time for long-lived aggregates.
 CREATE TABLE snapshot_event_entry (
     aggregate_identifier VARCHAR(255) NOT NULL,
     sequence_number      BIGINT       NOT NULL,
@@ -40,8 +41,6 @@ CREATE TABLE snapshot_event_entry (
     UNIQUE (event_identifier)
 );
 
--- Tracking token per processor: allows each event-handler group
--- to replay from its own position independently.
 CREATE TABLE token_entry (
     processor_name VARCHAR(255) NOT NULL,
     segment        INTEGER      NOT NULL,
@@ -52,7 +51,6 @@ CREATE TABLE token_entry (
     PRIMARY KEY (processor_name, segment)
 );
 
--- Saga persistent state (BookingSaga).
 CREATE TABLE saga_entry (
     saga_id         VARCHAR(255) NOT NULL,
     revision        VARCHAR(255),
@@ -61,10 +59,10 @@ CREATE TABLE saga_entry (
     PRIMARY KEY (saga_id)
 );
 
--- Association values let Axon look up the right saga instance
--- by a business key (e.g. bookingId).
+CREATE SEQUENCE association_value_entry_seq;
+
 CREATE TABLE association_value_entry (
-    id                BIGSERIAL    NOT NULL,
+    id                BIGINT       NOT NULL,
     association_key   VARCHAR(255) NOT NULL,
     association_value VARCHAR(255),
     saga_id           VARCHAR(255),
