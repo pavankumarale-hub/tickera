@@ -3,6 +3,7 @@ package com.pavankumar.tickera.booking.api;
 import com.pavankumar.tickera.booking.api.dto.BookingResponse;
 import com.pavankumar.tickera.booking.api.dto.CancelBookingRequest;
 import com.pavankumar.tickera.booking.api.dto.CreateBookingRequest;
+import com.pavankumar.tickera.booking.coreapi.BookingStatus;
 import com.pavankumar.tickera.booking.coreapi.commands.BookingCommands.CancelBookingCommand;
 import com.pavankumar.tickera.booking.coreapi.commands.BookingCommands.ConfirmBookingCommand;
 import com.pavankumar.tickera.booking.coreapi.commands.BookingCommands.CreateBookingCommand;
@@ -53,9 +54,14 @@ public class BookingController {
         commandGateway.sendAndWait(new CreateBookingCommand(
                 bookingId, request.customerId(), request.eventName(),
                 request.seats(), request.amount(), request.currency()));
+        // Return the known state directly rather than querying the projection:
+        // the TrackingEventProcessor is async, so the read model may not have
+        // processed BookingCreatedEvent yet when sendAndWait returns.
         return ResponseEntity
                 .created(URI.create("/api/v1/bookings/" + bookingId))
-                .body(BookingResponse.from(requireBooking(bookingId)));
+                .body(new BookingResponse(bookingId, request.customerId(), request.eventName(),
+                        request.seats(), request.amount(), request.currency(),
+                        BookingStatus.CREATED, null, null));
     }
 
     @PostMapping("/{bookingId}/confirm")
