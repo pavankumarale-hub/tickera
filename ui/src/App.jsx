@@ -265,8 +265,8 @@ function Timeline({ booking }) {
 /* ─────────────────────────────────── detail panel ────────────────────────── */
 
 const PAYMENT_META = {
-  APPROVED: { color: 'var(--paid-c)',  label: 'Approved' },
-  DECLINED: { color: 'var(--danger)',  label: 'Declined' },
+  COMPLETED: { color: 'var(--paid-c)',  label: 'Approved' },
+  DECLINED:  { color: 'var(--danger)',  label: 'Declined' },
 }
 
 function DetailPanel({ booking, onClose, onAction }) {
@@ -844,8 +844,8 @@ function PaymentsPage() {
     getPayments().then(d => setPayments(Array.isArray(d) ? d : [])).catch(e => setError(e.message))
   }, [])
 
-  const PM = { APPROVED: { c: 'var(--paid-c)', bg: 'var(--paid-bg)', bd: 'var(--paid-bd)' },
-               DECLINED:  { c: 'var(--danger)', bg: 'var(--danger-d)', bd: 'rgba(239,68,68,0.25)' } }
+  const PM = { COMPLETED: { c: 'var(--paid-c)', bg: 'var(--paid-bg)', bd: 'var(--paid-bd)' },
+               DECLINED:   { c: 'var(--danger)', bg: 'var(--danger-d)', bd: 'rgba(239,68,68,0.25)' } }
 
   return (
     <div className="page-content">
@@ -1087,11 +1087,11 @@ export default function App() {
   const fetchAll = useCallback(async () => {
     try {
       const data = await getAllBookings()
-      setBookings(prev => {
+      // Capture now once so the sort comparator is pure (no Date.now() per call)
+      const now = Date.now()
+      setBookings(() => {
         const next = Array.isArray(data) ? data : []
-        // sort by updatedAt desc, fall back to bookingId
         next.sort((a, b) => {
-          const now = Date.now()
           const ta = a.updatedAt ? new Date(a.updatedAt).getTime() : now
           const tb = b.updatedAt ? new Date(b.updatedAt).getTime() : now
           return tb - ta
@@ -1099,11 +1099,11 @@ export default function App() {
         return next
       })
       pollErrRef.current = 0
+      setPollError(false)
     } catch {
       pollErrRef.current += 1
       if (pollErrRef.current >= 5) {
         setPollError(true)
-        clearInterval(timerRef.current)
       }
     } finally {
       setLoading(false)
@@ -1116,11 +1116,11 @@ export default function App() {
 
   useEffect(() => {
     clearInterval(timerRef.current)
-    if (hasActive) {
+    if (hasActive && !pollError) {
       timerRef.current = setInterval(fetchAll, POLL_MS)
     }
     return () => clearInterval(timerRef.current)
-  }, [hasActive, fetchAll])
+  }, [hasActive, fetchAll, pollError])
 
   const handleCreated = (booking) => {
     setBookings(prev => [booking, ...prev])
@@ -1178,7 +1178,7 @@ export default function App() {
               Live updates paused — service unreachable.
               <button
                 className="btn btn-ghost btn-sm"
-                onClick={() => { setPollError(false); pollErrRef.current = 0; fetchAll() }}
+                onClick={() => { pollErrRef.current = 0; fetchAll() }}
               >
                 Retry
               </button>
