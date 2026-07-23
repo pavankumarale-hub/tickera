@@ -62,7 +62,7 @@ CREATE TABLE saga_entry (
 CREATE SEQUENCE association_value_entry_seq INCREMENT BY 50;
 
 CREATE TABLE association_value_entry (
-    id                BIGINT       NOT NULL,
+    id                BIGINT       NOT NULL DEFAULT nextval('association_value_entry_seq'),
     association_key   VARCHAR(255) NOT NULL,
     association_value VARCHAR(255),
     saga_id           VARCHAR(255),

@@ -3,7 +3,7 @@ import {
   Ticket, CreditCard, Bell, LayoutDashboard, Plus, X, Check,
   Clock, CheckCircle2, XCircle, AlertCircle, Info,
   Activity, Hash, Users, DollarSign, Zap, ChevronRight,
-  Loader2, RefreshCw, ArrowUpRight, TrendingUp,
+  Loader2, RefreshCw, ArrowUpRight, TrendingUp, AlertTriangle,
 } from 'lucide-react'
 import {
   createBooking, confirmBooking, cancelBooking,
@@ -287,12 +287,13 @@ function DetailPanel({ booking, onClose, onAction }) {
 
   useEffect(() => {
     if (!booking) return
+    prevStatusRef.current = booking.status  // reset on every new booking selection
     setPayments(null)
     setNotifications(null)
     load(booking.bookingId)
   }, [booking?.bookingId, load])
 
-  // reload details when status changes (booking updated by polling)
+  // reload details when status changes via polling (guards against same-status re-renders)
   useEffect(() => {
     if (!booking) return
     if (prevStatusRef.current !== booking.status) {
@@ -315,8 +316,6 @@ function DetailPanel({ booking, onClose, onAction }) {
   }
 
   if (!booking) return null
-
-  const pm = PAYMENT_META[payments?.[0]?.status]
 
   return (
     <div className="panel-inner">
@@ -413,7 +412,9 @@ function DetailPanel({ booking, onClose, onAction }) {
             <div style={{ fontSize: 12, color: 'var(--t4)', padding: '4px 0' }}>
               No payment record yet
             </div>
-          ) : payments.map(p => (
+          ) : payments.map(p => {
+            const pm = PAYMENT_META[p.status]
+            return (
             <div key={p.paymentId} className="payment-card">
               <div className="payment-card-header">
                 <span className="payment-card-id">
@@ -444,7 +445,7 @@ function DetailPanel({ booking, onClose, onAction }) {
                 </div>
               )}
             </div>
-          ))}
+          )})}
         </div>
 
         <div className="panel-divider" />
@@ -1077,7 +1078,9 @@ export default function App() {
   const [loading, setLoading]       = useState(true)
   const [selectedId, setSelectedId] = useState(null)
   const [showCreate, setShowCreate] = useState(false)
-  const timerRef = useRef(null)
+  const [pollError, setPollError]   = useState(false)
+  const timerRef   = useRef(null)
+  const pollErrRef = useRef(0)
 
   const navigate = (p) => { setPage(p); setSelectedId(null) }
 
@@ -1088,14 +1091,20 @@ export default function App() {
         const next = Array.isArray(data) ? data : []
         // sort by updatedAt desc, fall back to bookingId
         next.sort((a, b) => {
-          const ta = a.updatedAt ? new Date(a.updatedAt).getTime() : 0
-          const tb = b.updatedAt ? new Date(b.updatedAt).getTime() : 0
+          const now = Date.now()
+          const ta = a.updatedAt ? new Date(a.updatedAt).getTime() : now
+          const tb = b.updatedAt ? new Date(b.updatedAt).getTime() : now
           return tb - ta
         })
         return next
       })
+      pollErrRef.current = 0
     } catch {
-      // keep stale data on transient errors
+      pollErrRef.current += 1
+      if (pollErrRef.current >= 5) {
+        setPollError(true)
+        clearInterval(timerRef.current)
+      }
     } finally {
       setLoading(false)
     }
@@ -1161,6 +1170,20 @@ export default function App() {
               </button>
             </div>
           </div>
+
+          {/* Poll-failure banner */}
+          {pollError && (
+            <div className="poll-error-banner">
+              <AlertTriangle size={14} />
+              Live updates paused — service unreachable.
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => { setPollError(false); pollErrRef.current = 0; fetchAll() }}
+              >
+                Retry
+              </button>
+            </div>
+          )}
 
           {/* Body: content + panel */}
           <div className="body-wrap">

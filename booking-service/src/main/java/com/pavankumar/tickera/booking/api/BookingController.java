@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -61,7 +62,7 @@ public class BookingController {
                 .created(URI.create("/api/v1/bookings/" + bookingId))
                 .body(new BookingResponse(bookingId, request.customerId(), request.eventName(),
                         request.seats(), request.amount(), request.currency(),
-                        BookingStatus.CREATED, null, null));
+                        BookingStatus.CREATED, null, Instant.now()));
     }
 
     @PostMapping("/{bookingId}/confirm")

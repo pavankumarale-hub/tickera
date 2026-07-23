@@ -92,7 +92,7 @@ done
 say "1c. Waiting for payment settlement …"
 for id in "$B1" "$B2" "$B3" "$B4"; do
   step "$id → PAID "
-  wait_for "$id" "PAID"; done_
+  if wait_for "$id" "PAID"; then done_; else printf " ✗ (timeout)\n"; fi
 done
 
 # ── 2. Failure-path bookings (amount > $1 000 → DECLINED → CANCELLED) ─────────
@@ -113,7 +113,7 @@ done
 say "2c. Waiting for cancellation …"
 for id in "$B5" "$B6"; do
   step "$id → CANCELLED "
-  wait_for "$id" "CANCELLED"; done_
+  if wait_for "$id" "CANCELLED"; then done_; else printf " ✗ (timeout)\n"; fi
 done
 
 # ── 3. Pending bookings (left in CREATED state) ───────────────────────────────

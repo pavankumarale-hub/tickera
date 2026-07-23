@@ -1,12 +1,12 @@
 const ok = async (res) => {
   if (!res.ok) {
     const body = await res.text().catch(() => res.statusText)
-    // try to extract Spring error message
     try {
       const j = JSON.parse(body)
       throw new Error(j.message ?? j.error ?? body)
     } catch (e) {
-      if (e.message !== body) throw e
+      // Re-throw only our own Error, not the JSON.parse SyntaxError
+      if (!(e instanceof SyntaxError)) throw e
       throw new Error(body || `HTTP ${res.status}`)
     }
   }
