@@ -1,32 +1,23 @@
-# Tickera — Event-Driven Ticket Booking (Axon · Kafka · CQRS/ES)
+# Tickera — Event-Driven Ticket Booking
 
-A public, production-shaped microservices system that books event tickets. It is
-built to demonstrate the distributed-systems patterns I work with day to day:
-**CQRS + event sourcing with Axon inside each service**, **Kafka as the
-integration backbone between services**, a **Saga** for cross-service
-orchestration with timeout/compensation, **Redis** for exactly-once idempotency
-and read caching, and **consumer-driven contract testing (Pact) on an
-asynchronous Kafka boundary**.
-
-> One command to run everything: `docker compose up --build` → then `make demo`.
-
-[![CI](https://img.shields.io/badge/CI-GitHub_Actions-blue)](.github/workflows/ci.yml)
+[![CI](https://github.com/pavankumarale-hub/tickera/actions/workflows/ci.yml/badge.svg)](https://github.com/pavankumarale-hub/tickera/actions/workflows/ci.yml)
 ![Java](https://img.shields.io/badge/Java-17-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2-brightgreen)
 ![Axon](https://img.shields.io/badge/Axon-4.9-purple)
 ![Kafka](https://img.shields.io/badge/Kafka-event_backbone-black)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
+A public, production-shaped microservices system for booking event tickets, built to
+demonstrate senior distributed-systems patterns: **CQRS + event sourcing (Axon)**
+inside each service, **Kafka** as the integration backbone between services, a
+**Saga** for cross-service orchestration with timeout and compensation, **Redis** for
+exactly-once idempotency and read-through caching, **Pact consumer-driven contract
+testing** on an asynchronous Kafka boundary, and **Micrometer → Prometheus → Grafana**
+observability.
+
+> One command to run everything: `docker compose up --build` → then `make demo`.
+
 ---
-
-## Why this exists
-
-Most portfolios show CRUD over REST. This one shows the harder, more senior parts:
-event sourcing, sagas, eventual consistency, idempotency under at-least-once
-delivery, and contract testing on message boundaries — with the reasoning
-written down as [Architecture Decision Records](docs/adr) and a
-[low-level design doc](docs/LLD-booking-service.md), the way I document systems at
-work.
 
 ## Architecture at a glance
 
@@ -63,96 +54,118 @@ flowchart LR
     kafka --> booking
 ```
 
-Full diagrams (command→event→projection, saga sequence) are in
+Full write-path diagram, saga sequence, and design rationale are in
 [`docs/architecture.md`](docs/architecture.md).
 
 ### The happy path, in one sentence
 
-`POST /bookings` → `confirm` emits **BookingConfirmed** to Kafka → payment-service
-charges (idempotently) and emits **PaymentCompleted** → the booking saga marks the
-booking **PAID**; if payment never lands, the saga's **deadline** compensates by
-cancelling. notification-service records a customer notification at each step.
+`POST /bookings` → confirm emits **BookingConfirmed** to Kafka →
+payment-service charges (idempotently) and emits **PaymentCompleted** →
+the booking saga marks the booking **PAID**. If payment never arrives within
+15 minutes, the saga's **deadline** fires a compensating `CancelBooking`. An
+amount > $1 000 is declined, driving the booking to **CANCELLED** immediately.
+
+## Why this exists
+
+Most portfolios show CRUD over REST. This one shows the harder, more senior
+parts: event sourcing, sagas, eventual consistency, idempotency under
+at-least-once delivery, and contract testing on message boundaries — with the
+reasoning written down as [Architecture Decision Records](docs/adr) and a
+[low-level design doc](docs/LLD-booking-service.md), the way these decisions
+are documented on real projects.
 
 ## Services
 
 | Service | Port | Stack highlights | Swagger |
 |---------|------|------------------|---------|
-| `booking-service` | 8081 | Axon aggregate + projection + **saga**, Kafka pub/sub, Redis cache | http://localhost:8081/swagger-ui.html |
-| `payment-service` | 8082 | Axon aggregate, **Redis idempotency**, Kafka pub/sub | http://localhost:8082/swagger-ui.html |
-| `notification-service` | 8083 | **Non-Axon** Spring Kafka consumer, Postgres | http://localhost:8083/swagger-ui.html |
+| `booking-service` | 8081 | Axon aggregate + projection + **saga**, Flyway, Kafka pub/sub, Redis cache, DLT error handler | http://localhost:8081/swagger-ui.html |
+| `payment-service` | 8082 | Axon aggregate, **Redis `SETNX` idempotency**, Flyway, Kafka pub/sub | http://localhost:8082/swagger-ui.html |
+| `notification-service` | 8083 | Non-Axon Spring Kafka consumer, Flyway, Postgres | http://localhost:8083/swagger-ui.html |
 | `common-events` | — | Shared Kafka integration-event contracts | — |
 
-Infra: Kafka + Zookeeper, Redis, one Postgres **per service**, Prometheus (`:9090`),
-Grafana (`:3000`, anonymous viewer enabled).
+Infra: Kafka + Zookeeper · Redis · one Postgres **per service** ·
+Prometheus (`:9090`) · Grafana (`:3000`, anonymous viewer).
 
 ## Quick start
 
-Prerequisites: **Docker** (with Compose). JDK/Maven are *not* required to run —
-the images build inside Docker. To build/test locally you need JDK 17 (the bundled
-`./mvnw` fetches Maven itself).
+**Prerequisites:** Docker with Compose. JDK/Maven are not required to run the
+stack — images build inside Docker. To build or run tests locally you need
+JDK 17 (the bundled `./mvnw` fetches Maven automatically).
 
 ```bash
-# 1. Bring up the whole system (Kafka, Redis, 3x Postgres, 3 services, Prom+Grafana)
+# 1. Start the full stack (Kafka, Redis, 3× Postgres, 3 services, Prometheus, Grafana)
 docker compose up --build
 
-# 2. In another terminal, drive the end-to-end flow
-make demo         # or: ./scripts/demo.sh
-```
+# 2. In another terminal — run the happy-path demo
+make demo
 
-`make demo` creates a booking, confirms it, polls until the saga settles it to
-`PAID`, then prints the resulting payment and notifications.
+# 3. Or drive the failure/compensation path (amount > $1 000 → DECLINED → CANCELLED)
+make demo-fail
+```
 
 ### Try it by hand
 
 ```bash
-# create
-BID=$(curl -s -X POST localhost:8081/api/v1/bookings -H 'Content-Type: application/json' \
+# Create a booking
+BID=$(curl -s -X POST localhost:8081/api/v1/bookings \
+  -H 'Content-Type: application/json' \
   -d '{"customerId":"cust-42","eventName":"Symphony Gala","seats":3,"amount":240.00,"currency":"USD"}' \
   | python3 -c 'import sys,json;print(json.load(sys.stdin)["bookingId"])')
 
-# confirm (starts the saga + publishes to Kafka)
+# Confirm — starts the saga and publishes to Kafka
 curl -s -X POST localhost:8081/api/v1/bookings/$BID/confirm >/dev/null
 
-# watch it become PAID
+# Poll until settled
 curl -s localhost:8081/api/v1/bookings/$BID | python3 -m json.tool
 curl -s "localhost:8082/api/v1/payments?bookingId=$BID" | python3 -m json.tool
 curl -s "localhost:8083/api/v1/notifications?bookingId=$BID" | python3 -m json.tool
 ```
 
-> Tip: an amount above `1000.00` is declined by payment-service — a clean way to
-> see the **failure/compensation** path drive the booking to `CANCELLED`.
-
 ## Testing strategy
 
-| Layer | What it proves | Where |
-|-------|----------------|-------|
-| **Unit (aggregate)** | Invariants + transitions via Axon given/when/then, no infra | `BookingAggregateTest`, `PaymentAggregateTest` |
-| **Contract (Pact, message)** | booking↔payment agree on the `BookingConfirmed` Kafka message | consumer: `BookingEventsConsumerPactTest` · provider: `BookingEventsProviderPactTest` |
-| **Integration (Testcontainers)** | Real Kafka + Postgres: command→event→projection and the event actually reaches Kafka | `BookingFlowIntegrationTest` |
-| **Unit (listener)** | notification mapping | `NotificationListenerTest` |
+Tests are split into three JUnit 5 tag groups that CI runs as separate jobs:
+
+| Tag | What it proves | Key classes |
+|-----|----------------|-------------|
+| `unit` | Aggregate invariants + state transitions via Axon `given/when/then`, no Spring or infra | `BookingAggregateTest`, `PaymentAggregateTest`, `NotificationListenerTest` |
+| `contract` | booking-service and payment-service agree on the shape of the `BookingConfirmed` Kafka message (Pact V3 async CDC) | `BookingEventsConsumerPactTest` (generates pact) · `BookingEventsProviderPactTest` (verifies) |
+| `integration` | Real Kafka + Postgres via Testcontainers: command→event→projection and the integration event actually lands on the topic | `BookingFlowIntegrationTest` |
 
 ```bash
-./mvnw test          # everything (Testcontainers needs Docker running)
-make pacts           # generate the consumer pact, then verify it on the provider
+make test-unit          # fast — no Docker needed
+make test-contract      # generates pact then verifies it
+make test-integration   # Testcontainers (needs Docker)
+make test               # all three in one pass
 ```
 
-The Pact flow is the message-based (async) flavour of consumer-driven contract
-testing — the consumer writes its expectation to the shared [`/pacts`](pacts)
-folder and the provider must satisfy it, so the two services can evolve
-independently without a shared integration environment.
+The CI pipeline mirrors this structure: three parallel jobs (`unit-tests`,
+`contract-tests`, `integration-tests`) fan out after a compile gate, then
+`sonar` gathers the results.
 
 ## Observability
 
-- Each service exposes `/actuator/health`, `/actuator/prometheus`, `/actuator/metrics`.
-- Prometheus scrapes all three; Grafana auto-provisions a **Tickera Overview**
-  dashboard (request rate, p95 latency, JVM heap, Kafka consumption).
-- Grafana: http://localhost:3000 · Prometheus: http://localhost:9090
+Every service exposes `/actuator/prometheus`. Prometheus scrapes all three;
+Grafana auto-provisions the **Tickera — Service Overview** dashboard.
+
+**Dashboard rows:**
+
+| Row | Panels |
+|-----|--------|
+| HTTP Traffic | Request rate (req/s) · p95 latency (s) · 5xx error rate |
+| Booking Funnel & Payment | Booking state transitions (CREATED → CONFIRMED → PAID / CANCELLED) · Redis idempotency guard (first-delivery vs. duplicates blocked) |
+| Infrastructure | Kafka consumer record rate · JVM heap · JVM GC pause rate |
+
+The `$service` variable filters panels to a single microservice or shows all three.
+
+- Grafana: http://localhost:3000
+- Prometheus: http://localhost:9090
 
 ## Design docs
 
-- [Architecture & diagrams](docs/architecture.md)
+- [Architecture & diagrams](docs/architecture.md) — write-path flow, saga sequence diagram, technology map
 - [Low-level design — booking-service](docs/LLD-booking-service.md)
-- ADRs: [Axon vs plain Kafka](docs/adr/0001-axon-over-plain-kafka.md) ·
+- ADRs:
+  [Axon vs plain Kafka](docs/adr/0001-axon-over-plain-kafka.md) ·
   [Database per service](docs/adr/0002-database-per-service.md) ·
   [Idempotency](docs/adr/0003-idempotency-strategy.md) ·
   [Eventual consistency & sagas](docs/adr/0004-eventual-consistency-and-sagas.md)
@@ -161,34 +174,36 @@ independently without a shared integration environment.
 
 ```
 tickera/
-├── common-events/          # shared Kafka integration-event contracts
-├── booking-service/        # Axon CQRS/ES + saga (the core)
-├── payment-service/        # Axon CQRS/ES + Redis idempotency
-├── notification-service/   # plain Spring Kafka consumer
-├── docs/                   # architecture, LLD, ADRs
-├── infra/                  # prometheus + grafana provisioning
-├── pacts/                  # generated consumer contracts (shared)
-├── scripts/demo.sh         # end-to-end demo
-├── docker-compose.yml      # one-command stack
-└── .github/workflows/ci.yml
+├── common-events/          # shared Kafka integration-event contracts (eventId, bookingId, amount …)
+├── booking-service/        # Axon CQRS/ES, saga, Flyway, DLT error handler, Redis cache
+├── payment-service/        # Axon CQRS/ES, Redis SETNX idempotency, Flyway
+├── notification-service/   # plain Spring Kafka consumer, Flyway
+├── docs/                   # architecture.md, LLD, ADRs
+├── infra/                  # Prometheus config, Grafana provisioning + dashboard JSON
+├── pacts/                  # generated Pact consumer contracts (committed, read by provider CI job)
+├── scripts/demo.sh         # end-to-end demo (happy path + failure/compensation path)
+├── Makefile                # build / test / demo shortcuts
+├── docker-compose.yml      # one-command full stack
+└── .github/workflows/ci.yml  # build → unit → contract ∥ integration → sonar
 ```
 
-## Roadmap (how it was built)
+## How it was built (commit history)
 
-Built incrementally to keep a real commit history rather than one big dump:
+Built incrementally to show real engineering progression rather than a single
+large dump:
 
-1. Scaffold `booking-service`: CRUD + OpenAPI + Dockerfile + CI skeleton.
-2. Axon command/event handling for the booking lifecycle.
-3. `payment-service` + Kafka event between the two.
-4. Pact contract tests + Testcontainers integration test.
-5. Redis idempotency layer + observability dashboard.
-6. README, architecture diagram, design docs, demo.
+1. Scaffold three services: OpenAPI specs, Dockerfiles, Maven multi-module, CI skeleton.
+2. Axon command/event/projection lifecycle + `BookingAggregate` state machine.
+3. `payment-service` + Kafka event bridge + `BookingSaga` with deadline compensation.
+4. Flyway migrations (all Axon tables version-controlled), Kafka dead-letter topics, `DefaultErrorHandler` with `ExponentialBackOff`.
+5. Pact V3 async CDC contract tests + Testcontainers integration test; JUnit 5 tag strategy; multi-job CI pipeline.
+6. Micrometer booking-funnel counters, Redis idempotency metrics, `RedisCacheManagerBuilderCustomizer`, Grafana dashboard v2.
 
-### Known gaps / next steps
-- Flyway/Liquibase migrations instead of `ddl-auto=update`.
-- `QuartzDeadlineManager` for durable, multi-instance saga deadlines.
-- Dead-letter topics + retry policy on Kafka consumers.
-- Aggregate snapshotting for long event streams.
+## Next steps
+
+- `QuartzDeadlineManager` — replace the in-memory `SimpleDeadlineManager` so saga deadlines survive a service restart.
+- Aggregate snapshotting — cap event replay time for long-lived `BookingAggregate` instances.
+- Pact Broker — publish and version pact files centrally instead of committing them to the repo.
 
 ## License
 
