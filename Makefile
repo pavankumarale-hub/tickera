@@ -1,7 +1,7 @@
 # Tickera developer shortcuts
 .DEFAULT_GOAL := help
 
-.PHONY: help build test test-unit test-contract test-integration up down logs demo demo-fail pacts clean ui
+.PHONY: help build test test-unit test-contract test-integration up down logs demo demo-fail pacts seed clean ui
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -41,6 +41,9 @@ demo: ## Run the end-to-end happy-path demo (booking → PAID)
 
 demo-fail: ## Run the compensation-path demo (amount > $1000 → DECLINED → CANCELLED)
 	./scripts/demo.sh --fail
+
+seed: ## Seed 9 realistic bookings (4 PAID, 2 CANCELLED, 3 CREATED) for UI demo
+	./scripts/seed.sh
 
 ui: ## Start the React dev server (Vite) — services must be running on ports 808x
 	cd ui && npm install && npm run dev
