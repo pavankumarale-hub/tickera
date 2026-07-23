@@ -17,10 +17,6 @@ spring:
       hibernate:
         jdbc:
           time_zone: UTC
-        type:
-          # Hibernate 6 changed the default PostgreSQL byte[] mapping from bytea to oid.
-          # Our Flyway schema uses bytea, so force VARBINARY to keep the mapping consistent.
-          preferred_array_jdbc_type: VARBINARY
   flyway:
     enabled: true
     locations: classpath:db/migration

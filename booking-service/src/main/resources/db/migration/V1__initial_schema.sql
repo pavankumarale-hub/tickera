@@ -1,14 +1,19 @@
 -- ============================================================
 -- Axon Framework 4.9 JPA schema (PostgreSQL)
 -- Event store, tracking tokens, and saga tables.
+--
+-- Binary columns (payload, meta_data, token, serialized_saga) use OID rather
+-- than BYTEA. Axon's JPA entities annotate these fields with @Lob byte[], and
+-- Hibernate 6 (Spring Boot 3.x) maps @Lob byte[] to PostgreSQL OID by default.
+-- Using BYTEA here would cause a type-mismatch error at runtime.
 -- ============================================================
 
 -- Event store: one row per domain event, append-only.
 CREATE TABLE domain_event_entry (
     global_index         BIGSERIAL    NOT NULL,
     event_identifier     VARCHAR(255) NOT NULL,
-    meta_data            BYTEA,
-    payload              BYTEA        NOT NULL,
+    meta_data            OID,
+    payload              OID          NOT NULL,
     payload_revision     VARCHAR(255),
     payload_type         VARCHAR(255) NOT NULL,
     time_stamp           VARCHAR(255) NOT NULL,
@@ -26,8 +31,8 @@ CREATE TABLE snapshot_event_entry (
     sequence_number      BIGINT       NOT NULL,
     type                 VARCHAR(255) NOT NULL,
     event_identifier     VARCHAR(255) NOT NULL,
-    meta_data            BYTEA,
-    payload              BYTEA        NOT NULL,
+    meta_data            OID,
+    payload              OID          NOT NULL,
     payload_revision     VARCHAR(255),
     payload_type         VARCHAR(255) NOT NULL,
     time_stamp           VARCHAR(255) NOT NULL,
@@ -42,7 +47,7 @@ CREATE TABLE token_entry (
     segment        INTEGER      NOT NULL,
     owner          VARCHAR(255),
     timestamp      VARCHAR(255) NOT NULL,
-    token          BYTEA,
+    token          OID,
     token_type     VARCHAR(255),
     PRIMARY KEY (processor_name, segment)
 );
@@ -52,7 +57,7 @@ CREATE TABLE saga_entry (
     saga_id         VARCHAR(255) NOT NULL,
     revision        VARCHAR(255),
     saga_type       VARCHAR(255),
-    serialized_saga BYTEA,
+    serialized_saga OID,
     PRIMARY KEY (saga_id)
 );
 
