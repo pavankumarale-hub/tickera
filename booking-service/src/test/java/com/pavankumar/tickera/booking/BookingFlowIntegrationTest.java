@@ -39,7 +39,8 @@ import static org.awaitility.Awaitility.await;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
                 "spring.cache.type=simple",          // no Redis needed for this slice
-                "spring.data.redis.repositories.enabled=false"
+                "spring.data.redis.repositories.enabled=false",
+                "spring.flyway.enabled=true"         // Flyway creates schema against Testcontainers DB
         })
 class BookingFlowIntegrationTest {
 

@@ -38,6 +38,14 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
 
         <!-- Axon: CQRS + event sourcing. Server connector excluded so events and
              tracking tokens persist in the service-local Postgres (db-per-service). -->
