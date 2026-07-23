@@ -4,6 +4,7 @@ import com.pavankumar.tickera.common.events.PaymentCompletedIntegrationEvent;
 import com.pavankumar.tickera.notification.domain.Notification;
 import com.pavankumar.tickera.notification.domain.NotificationRepository;
 import com.pavankumar.tickera.notification.listener.NotificationListener;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -13,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+@Tag("unit")
 class NotificationListenerTest {
 
     @Test

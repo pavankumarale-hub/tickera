@@ -11,10 +11,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-test:
+  # ── 1. Compile + static analysis ──────────────────────────────────────────
+  build:
     runs-on: ubuntu-latest
-    # Ubuntu runners ship with Docker, which Testcontainers needs for the
-    # Kafka + Postgres integration test.
     steps:
       - uses: actions/checkout@v4
 
@@ -25,42 +24,112 @@ jobs:
           java-version: '17'
           cache: maven
 
-      - name: Build + Checkstyle (no tests)
+      - name: Compile + Checkstyle (no tests)
         run: ./mvnw -B -DskipTests verify
 
-      - name: Consumer contract (generates pact)
-        run: ./mvnw -B -pl payment-service test -Dtest=BookingEventsConsumerPactTest
+  # ── 2. Unit tests ─────────────────────────────────────────────────────────
+  unit-tests:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Provider contract verification
-        run: ./mvnw -B -pl booking-service test -Dtest=BookingEventsProviderPactTest
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
 
-      - name: Unit + integration tests (Testcontainers) + JaCoCo
-        run: ./mvnw -B verify
+      - name: Unit tests (@Tag("unit"))
+        run: ./mvnw -B test -Dgroups=unit
 
-      - name: Upload coverage report
+      - name: Upload JaCoCo unit-test report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jacoco-reports
+          name: jacoco-unit
           path: '**/target/site/jacoco/'
           if-no-files-found: ignore
 
+  # ── 3. Consumer-driven contract tests (Pact V3 message) ───────────────────
+  # Runs after unit tests to avoid spending time on contracts when basics fail.
+  # Consumer (payment-service) generates the pact; provider (booking-service)
+  # verifies it in the same job so the generated file is on the same filesystem.
+  contract-tests:
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Consumer — generate pact (payment-service)
+        run: >
+          ./mvnw -B -pl payment-service test
+          -Dtest=BookingEventsConsumerPactTest
+          -Dsurefire.failIfNoSpecifiedTests=false
+
+      - name: Upload generated pact as CI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pacts
+          path: pacts/
+
+      - name: Provider — verify pact (booking-service)
+        run: >
+          ./mvnw -B -pl booking-service test
+          -Dtest=BookingEventsProviderPactTest
+          -Dsurefire.failIfNoSpecifiedTests=false
+
+  # ── 4. Integration tests (Testcontainers — needs Docker on runner) ─────────
+  # Runs in parallel with contract-tests; both depend only on unit-tests.
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Integration tests (@Tag("integration") — real Postgres + Kafka)
+        run: ./mvnw -B test -Dgroups=integration
+
+      - name: Upload JaCoCo integration-test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-integration
+          path: '**/target/site/jacoco/'
+          if-no-files-found: ignore
+
+  # ── 5. SonarCloud — only on push, only when token is configured ───────────
   sonar:
     runs-on: ubuntu-latest
-    needs: build-and-test
-    # Only runs when a SONAR_TOKEN secret is configured, so forks/first clones
-    # don't fail. Wire it to SonarCloud in repo settings to light it up.
-    if: ${{ github.event_name == 'push' }}
+    needs: [contract-tests, integration-tests]
+    if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
           cache: maven
+
       - name: SonarCloud scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

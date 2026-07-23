@@ -119,6 +119,12 @@
             <artifactId>kafka</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Awaitility for async assertions in integration tests -->
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <scope>test</scope>
+        </dependency>
         <!-- Pact: booking-service is the PROVIDER of booking-events messages -->
         <dependency>
             <groupId>au.com.dius.pact.provider</groupId>

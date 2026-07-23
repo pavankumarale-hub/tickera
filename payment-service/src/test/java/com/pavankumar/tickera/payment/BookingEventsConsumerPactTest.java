@@ -11,6 +11,7 @@ import au.com.dius.pact.core.model.messaging.Message;
 import au.com.dius.pact.core.model.messaging.MessagePact;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pavankumar.tickera.common.events.BookingConfirmedIntegrationEvent;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -29,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * (Kafka), not an HTTP pact — the message-based CDC pattern applied to an
  * event-driven boundary.
  */
+@Tag("contract")
 @ExtendWith(PactConsumerTestExt.class)
 @PactTestFor(providerName = "booking-service", providerType = ProviderType.ASYNCH,
         pactVersion = PactSpecVersion.V3)

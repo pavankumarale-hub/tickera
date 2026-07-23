@@ -7,10 +7,12 @@ import com.pavankumar.tickera.payment.coreapi.events.PaymentEvents.PaymentProces
 import org.axonframework.test.aggregate.AggregateTestFixture;
 import org.axonframework.test.aggregate.FixtureConfiguration;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
+@Tag("unit")
 class PaymentAggregateTest {
 
     private FixtureConfiguration<PaymentAggregate> fixture;

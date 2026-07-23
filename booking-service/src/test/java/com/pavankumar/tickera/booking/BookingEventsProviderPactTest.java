@@ -9,6 +9,7 @@ import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pavankumar.tickera.common.events.BookingConfirmedIntegrationEvent;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -24,6 +25,7 @@ import java.math.BigDecimal;
  * testing — the same technique applied to an Axon/Kafka event stream so the two
  * services can evolve independently without an integration environment.
  */
+@Tag("contract")
 @Provider("booking-service")
 @PactFolder("../pacts")
 @IgnoreNoPactsToVerify   // reactor may build the provider before the consumer regenerates the pact

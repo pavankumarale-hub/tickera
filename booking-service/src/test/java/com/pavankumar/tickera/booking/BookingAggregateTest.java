@@ -12,6 +12,7 @@ import com.pavankumar.tickera.booking.coreapi.events.BookingEvents.BookingPaidEv
 import org.axonframework.test.aggregate.AggregateTestFixture;
 import org.axonframework.test.aggregate.FixtureConfiguration;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -21,6 +22,7 @@ import java.math.BigDecimal;
  * This is the fast inner loop of TDD on an event-sourced aggregate: you assert on
  * the events produced (or the exception thrown), not on mutable getters.
  */
+@Tag("unit")
 class BookingAggregateTest {
 
     private static final String ID = "b-1";
