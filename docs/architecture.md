@@ -10,21 +10,26 @@ cross-service orchestration, **Redis** for idempotency and read caching, and
 
 ```mermaid
 flowchart LR
-    client([Client / curl / Swagger])
+    browser([Browser])
+    cli([curl / Swagger])
 
-    subgraph booking[booking-service]
+    subgraph ui_svc[React SPA · nginx · :3001]
+        spa[Vite-built SPA]
+    end
+
+    subgraph booking[booking-service · :8081]
         bAgg[BookingAggregate<br/>CQRS + Event Sourcing]
         bProj[(Booking read model<br/>Postgres)]
         bSaga[BookingSaga<br/>orchestration + timeout]
     end
 
-    subgraph payment[payment-service]
+    subgraph payment[payment-service · :8082]
         pAgg[PaymentAggregate<br/>CQRS + Event Sourcing]
         pProj[(Payment read model<br/>Postgres)]
         idem[[Redis idempotency]]
     end
 
-    subgraph notification[notification-service]
+    subgraph notification[notification-service · :8083]
         nList[NotificationListener<br/>plain Kafka consumer]
         nDb[(Notifications<br/>Postgres)]
     end
@@ -32,9 +37,13 @@ flowchart LR
     redis[[Redis cache]]
     kafka{{Kafka}}
 
-    client -->|REST commands/queries| booking
-    client -->|REST queries| payment
-    client -->|REST queries| notification
+    browser --> ui_svc
+    ui_svc -->|proxy /api/v1/bookings| booking
+    ui_svc -->|proxy /api/v1/payments| payment
+    ui_svc -->|proxy /api/v1/notifications| notification
+    cli -->|direct REST| booking
+    cli -->|direct REST| payment
+    cli -->|direct REST| notification
 
     bAgg --> bProj
     bProj -. read-through .- redis
@@ -129,9 +138,10 @@ Short version (full rationale in the ADRs under [`docs/adr`](adr)):
 | CQRS / event sourcing / sagas | Axon Framework 4.9 (JPA event store, no Axon Server) |
 | Inter-service messaging | Apache Kafka (Spring Kafka) |
 | Idempotency + read cache | Redis (Spring Data Redis) |
-| Persistence | PostgreSQL 16 (one per service) |
+| Persistence | PostgreSQL 16 (one per service), Flyway migrations |
 | API contracts | OpenAPI 3.0 (springdoc + static specs) |
 | Contract testing | Pact (message/async CDC) |
 | Integration testing | Testcontainers (Kafka + Postgres) |
 | Observability | Spring Boot Actuator + Micrometer → Prometheus → Grafana |
 | Build / CI | Maven (multi-module), GitHub Actions, JaCoCo, Checkstyle, SonarCloud-ready |
+| Frontend | React 18, Vite 5, nginx (reverse-proxy + SPA fallback) |
