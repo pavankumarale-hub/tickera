@@ -116,8 +116,11 @@ contains valid transitions.
   `saga_entry`, `association_value_entry`.
 - Application-managed: `booking_summary` (read model).
 
-Schema is created by Hibernate (`ddl-auto=update`) for the demo; a Flyway/Liquibase
-migration set is the production follow-up (tracked as a known gap in the README).
+Schema is managed by **Flyway** (`ddl-auto: none`). `V1__initial_schema.sql`
+creates all Axon tables with their named sequences (required for Hibernate's
+`SEQUENCE` generation strategy with `INCREMENT BY 50`) and the `booking_summary`
+read-model table. Running `flyway:repair` then `flyway:migrate` is the standard
+recovery path if schema state diverges.
 
 ## 9. Observability
 
@@ -128,8 +131,12 @@ migration set is the production follow-up (tracked as a known gap in the README)
 
 ## 10. Known gaps / next steps
 
-- Replace `ddl-auto=update` with Flyway migrations.
 - Swap `SimpleDeadlineManager` for `QuartzDeadlineManager` so deadlines survive
   restarts and work across instances.
-- Add a dead-letter topic + retry policy on the Kafka consumers.
-- Snapshotting on the aggregate once event streams grow long.
+- Add aggregate snapshotting to cap event-replay time for long-lived
+  `BookingAggregate` instances.
+- Formalise the dead-letter topic retry policy — current `DefaultErrorHandler`
+  with `ExponentialBackOff` retries in-process; a proper DLT consumer would
+  allow offline inspection and selective replay.
+- Publish Pact contracts to a Pact Broker instead of committing them to the repo,
+  enabling cross-team contract versioning.
