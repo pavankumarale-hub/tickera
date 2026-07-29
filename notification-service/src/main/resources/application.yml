@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: notification-service
+  mvc:
+    problemdetails:
+      enabled: true
 
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5434/notification_db}
