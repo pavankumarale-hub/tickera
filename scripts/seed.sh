@@ -42,7 +42,7 @@ confirm_booking() {
 # Poll until booking reaches expected status (or 25 s timeout)
 wait_for() {
   local id="$1" expected="$2"
-  for _ in $(seq 1 25); do
+  for _ in {1..25}; do
     local status
     status=$(curl -fsS "$BOOKING/api/v1/bookings/$id" \
               | python3 -c 'import sys,json; print(json.load(sys.stdin)["status"])')
@@ -57,7 +57,7 @@ wait_for() {
 
 # ── 0. Health check ───────────────────────────────────────────────────────────
 say "0. Checking booking-service health"
-for i in $(seq 1 30); do
+for i in {1..30}; do
   if curl -fsS "$BOOKING/actuator/health" 2>/dev/null \
        | python3 -c 'import sys,json; s=json.load(sys.stdin)["status"]; exit(0 if s=="UP" else 1)' \
        2>/dev/null; then

@@ -465,7 +465,6 @@ body {
 
 .list-header .col.right { text-align: right; }
 
-.list-body { }
 
 .list-row {
   padding: 0 20px;
@@ -1281,13 +1280,6 @@ body {
    ───────────────────────────────────────────────────────────────────────────── */
 
 .mono { font-family: 'JetBrains Mono', monospace; }
-.truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.flex-center { display: flex; align-items: center; justify-content: center; }
-.gap-4 { gap: 4px; }
-.gap-6 { gap: 6px; }
-.gap-8 { gap: 8px; }
-.text-muted { color: var(--t2); }
-.text-dim { color: var(--t3); }
 
 /* loading indicator inline */
 .inline-loading {

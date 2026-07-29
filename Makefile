@@ -1,7 +1,7 @@
 # Tickera developer shortcuts
 .DEFAULT_GOAL := help
 
-.PHONY: help build test test-unit test-contract test-integration up down logs demo demo-fail pacts seed clean ui
+.PHONY: help build lint test test-unit test-contract test-integration up down logs demo demo-fail pacts seed clean ui
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -9,6 +9,9 @@ help: ## Show this help
 
 build: ## Compile all modules and package jars (skips tests)
 	./mvnw -q -DskipTests package
+
+lint: ## Run Checkstyle static analysis on all modules
+	./mvnw -B checkstyle:check
 
 test: ## Run all tests — unit + contract + integration (Testcontainers needs Docker)
 	./mvnw test

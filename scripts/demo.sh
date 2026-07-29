@@ -30,7 +30,7 @@ field() { python3 -c "import sys,json;print(json.load(sys.stdin)[\"$1\"])"; }
 # ── 0. Wait for services to be ready ─────────────────────────────────────────
 say "0. Checking service health"
 for svc in "$BOOKING" "$PAYMENT" "$NOTIFY"; do
-  for i in $(seq 1 20); do
+  for i in {1..20}; do
     if curl -fsS "$svc/actuator/health" 2>/dev/null | python3 -c \
         'import sys,json; s=json.load(sys.stdin)["status"]; exit(0 if s=="UP" else 1)' 2>/dev/null; then
       ok "$svc is UP"
@@ -73,7 +73,7 @@ fi
 
 say "3. Waiting for booking to reach $EXPECTED …"
 SETTLED=false
-for i in $(seq 1 30); do
+for i in {1..30}; do
   STATUS=$(curl -fsS "$BOOKING/api/v1/bookings/$BOOKING_ID" | field status)
   printf "   [%2d] status = %s\n" "$i" "$STATUS"
   if [[ "$STATUS" == "$EXPECTED" ]]; then
