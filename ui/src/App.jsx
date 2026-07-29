@@ -56,12 +56,19 @@ const ToastCtx = createContext(null)
 
 function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([])
-  const idRef = useRef(0)
+  const idRef     = useRef(0)
+  const timerIds  = useRef(new Set())
+
+  useEffect(() => () => timerIds.current.forEach(clearTimeout), [])
 
   const push = useCallback((type, title, desc) => {
     const id = ++idRef.current
     setToasts(t => [...t, { id, type, title, desc }])
-    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 4200)
+    const handle = setTimeout(() => {
+      setToasts(t => t.filter(x => x.id !== id))
+      timerIds.current.delete(handle)
+    }, 4200)
+    timerIds.current.add(handle)
   }, [])
 
   const dismiss = useCallback((id) => setToasts(t => t.filter(x => x.id !== id)), [])

@@ -11,7 +11,8 @@ const ok = async (res) => {
     }
   }
   const text = await res.text()
-  return text ? JSON.parse(text) : null
+  if (!text) return null
+  try { return JSON.parse(text) } catch { return text }
 }
 
 // Booking endpoints (booking-service :8081)
