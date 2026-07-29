@@ -44,7 +44,12 @@ public class BookingEventsConsumer {
                 event.bookingId(), event.amount(), event.currency(), paymentId);
         commandGateway.send(new ProcessPaymentCommand(
                 paymentId, event.bookingId(), event.customerId(),
-                event.amount(), event.currency()));
+                event.amount(), event.currency()))
+                .exceptionally(ex -> {
+                    log.error("ProcessPayment command rejected for booking {}: {}",
+                            event.bookingId(), ex.getMessage());
+                    return null;
+                });
     }
 
     @KafkaHandler(isDefault = true)

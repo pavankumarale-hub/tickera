@@ -71,7 +71,12 @@ public class BookingSaga {
     @DeadlineHandler(deadlineName = PAYMENT_DEADLINE)
     public void onPaymentTimeout(String bookingId) {
         log.warn("Payment deadline elapsed for booking {} — compensating", bookingId);
-        commandGateway.send(new CancelBookingCommand(bookingId, "Payment not received in time"));
+        commandGateway.send(new CancelBookingCommand(bookingId, "Payment not received in time"))
+                .exceptionally(ex -> {
+                    log.error("Compensation CancelBooking rejected for booking {}: {}",
+                            bookingId, ex.getMessage());
+                    return null;
+                });
     }
 
     private void cancelDeadline(DeadlineManager deadlineManager) {

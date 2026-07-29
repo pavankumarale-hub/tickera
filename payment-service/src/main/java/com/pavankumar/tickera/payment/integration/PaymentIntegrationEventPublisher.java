@@ -39,8 +39,15 @@ public class PaymentIntegrationEventPublisher {
                 event.bookingId(),
                 event.amount(),
                 event.currency());
-        kafkaTemplate.send(KafkaTopics.PAYMENT_EVENTS, event.bookingId(), out);
-        log.info("Published PaymentCompleted for booking {}", event.bookingId());
+        kafkaTemplate.send(KafkaTopics.PAYMENT_EVENTS, event.bookingId(), out)
+                .whenComplete((result, ex) -> {
+                    if (ex != null) {
+                        log.error("Failed to publish PaymentCompleted for booking {}: {}",
+                                event.bookingId(), ex.getMessage(), ex);
+                        throw new RuntimeException("Kafka publish failed for booking " + event.bookingId(), ex);
+                    }
+                    log.info("Published PaymentCompleted for booking {}", event.bookingId());
+                });
     }
 
     @EventHandler
@@ -50,7 +57,14 @@ public class PaymentIntegrationEventPublisher {
                 event.paymentId(),
                 event.bookingId(),
                 event.reason());
-        kafkaTemplate.send(KafkaTopics.PAYMENT_EVENTS, event.bookingId(), out);
-        log.info("Published PaymentFailed for booking {}", event.bookingId());
+        kafkaTemplate.send(KafkaTopics.PAYMENT_EVENTS, event.bookingId(), out)
+                .whenComplete((result, ex) -> {
+                    if (ex != null) {
+                        log.error("Failed to publish PaymentFailed for booking {}: {}",
+                                event.bookingId(), ex.getMessage(), ex);
+                        throw new RuntimeException("Kafka publish failed for booking " + event.bookingId(), ex);
+                    }
+                    log.info("Published PaymentFailed for booking {}", event.bookingId());
+                });
     }
 }

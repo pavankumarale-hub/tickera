@@ -2,6 +2,8 @@ package com.pavankumar.tickera.payment.integration;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +23,7 @@ import java.time.Duration;
 @Component
 public class IdempotencyGuard {
 
+    private static final Logger log = LoggerFactory.getLogger(IdempotencyGuard.class);
     private static final Duration TTL = Duration.ofHours(24);
     private static final String KEY_PREFIX = "payment:processed-event:";
 
@@ -43,16 +46,25 @@ public class IdempotencyGuard {
     /**
      * @return {@code true} if this eventId has not been seen before (caller should
      *         process it); {@code false} if it is a duplicate (caller should skip).
+     *         Fails open on Redis unavailability — allows processing rather than
+     *         silently dropping a payment event.
      */
     public boolean firstDelivery(String eventId) {
-        Boolean set = redis.opsForValue()
-                .setIfAbsent(KEY_PREFIX + eventId, "1", TTL);
-        boolean isFirst = Boolean.TRUE.equals(set);
-        if (isFirst) {
+        try {
+            Boolean set = redis.opsForValue()
+                    .setIfAbsent(KEY_PREFIX + eventId, "1", TTL);
+            boolean isFirst = Boolean.TRUE.equals(set);
+            if (isFirst) {
+                firstDeliveryCounter.increment();
+            } else {
+                duplicateCounter.increment();
+            }
+            return isFirst;
+        } catch (Exception ex) {
+            log.error("Idempotency guard Redis failure for eventId {} — allowing processing: {}",
+                    eventId, ex.getMessage());
             firstDeliveryCounter.increment();
-        } else {
-            duplicateCounter.increment();
+            return true;
         }
-        return isFirst;
     }
 }
