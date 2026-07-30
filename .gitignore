@@ -33,3 +33,6 @@ out/
 
 # Local tooling
 .claude/
+
+# Repo assets not meant for version control
+social-preview.html

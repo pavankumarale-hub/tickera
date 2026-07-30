@@ -1086,8 +1086,9 @@ export default function App() {
   const [selectedId, setSelectedId] = useState(null)
   const [showCreate, setShowCreate] = useState(false)
   const [pollError, setPollError]   = useState(false)
-  const timerRef   = useRef(null)
-  const pollErrRef = useRef(0)
+  const timerRef        = useRef(null)
+  const pollErrRef      = useRef(0)
+  const createTimerRef  = useRef(null)
 
   const navigate = (p) => { setPage(p); setSelectedId(null) }
 
@@ -1129,10 +1130,13 @@ export default function App() {
     return () => clearInterval(timerRef.current)
   }, [hasActive, fetchAll, pollError])
 
+  useEffect(() => () => clearTimeout(createTimerRef.current), [])
+
   const handleCreated = (booking) => {
     setBookings(prev => [booking, ...prev])
     setSelectedId(booking.bookingId)
-    setTimeout(fetchAll, 800)
+    clearTimeout(createTimerRef.current)
+    createTimerRef.current = setTimeout(fetchAll, 800)
   }
 
   const selectedBooking = bookings.find(b => b.bookingId === selectedId) ?? null
