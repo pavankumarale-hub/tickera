@@ -30,6 +30,7 @@ public class PaymentAggregate {
     private PaymentStatus status;
 
     protected PaymentAggregate() {
+        // Required by Axon to reconstruct the aggregate before replay.
     }
 
     @CommandHandler
