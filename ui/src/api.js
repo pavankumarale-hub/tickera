@@ -41,7 +41,7 @@ export const getAllBookings  = () =>
   fetch('/api/v1/bookings').then(ok)
 
 // Payment endpoint (payment-service :8082)
-// Returns List<PaymentResponse>: [{paymentId, bookingId, amount, currency, status (APPROVED|DECLINED), reason, createdAt}]
+// Returns List<PaymentResponse>: [{paymentId, bookingId, amount, currency, status (COMPLETED|DECLINED), reason, createdAt}]
 export const getPayments    = (bookingId) =>
   fetch(bookingId
     ? `/api/v1/payments?bookingId=${encodeURIComponent(bookingId)}`
@@ -49,7 +49,7 @@ export const getPayments    = (bookingId) =>
   ).then(ok)
 
 // Notification endpoint (notification-service :8083)
-// Returns List<Notification>: [{id, bookingId, channel, message, createdAt}]
+// Returns List<NotificationResponse>: [{bookingId, channel, message, createdAt}]
 export const getNotifications = (bookingId) =>
   fetch(bookingId
     ? `/api/v1/notifications?bookingId=${encodeURIComponent(bookingId)}`

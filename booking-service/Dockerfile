@@ -17,4 +17,4 @@ FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /workspace/booking-service/target/booking-service.jar app.jar
 EXPOSE 8081
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/app.jar"]
