@@ -470,7 +470,7 @@ function DetailPanel({ booking, onClose, onAction }) {
               No notifications sent
             </div>
           ) : notifications.map(n => (
-            <div key={n.id} className="notif-item">
+            <div key={n.createdAt} className="notif-item">
               <div className="notif-channel">
                 <Zap size={9} />
                 {n.channel ?? 'system'}
@@ -974,7 +974,7 @@ function NotificationsPage() {
                 const ch = (n.channel ?? 'system').toUpperCase()
                 const cm = CHANNEL_COLOR[ch] ?? CHANNEL_COLOR.system
                 return (
-                  <div key={n.id} style={{
+                  <div key={n.createdAt} style={{
                     display: 'flex', alignItems: 'center', gap: 14, padding: '12px 20px',
                     borderBottom: '1px solid var(--bd)', transition: 'background 100ms',
                   }}
