@@ -574,7 +574,7 @@ function CreateModal({ onClose, onCreated }) {
               <div className="field">
                 <label>Seats</label>
                 <input
-                  required type="number" min="1" max="100"
+                  required type="number" min="1" max="500"
                   value={form.seats}
                   onChange={set('seats')}
                 />
