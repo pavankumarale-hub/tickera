@@ -89,11 +89,7 @@ class BookingFlowIntegrationTest {
             // integration event reached Kafka
             await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(500));
-                List<String> keys = new java.util.ArrayList<>();
-                for (ConsumerRecord<String, String> r : records) {
-                    keys.add(r.key());
-                }
-                assertThat(keys).contains(id);
+                assertThat(records).extracting(ConsumerRecord::key).contains(id);
             });
         }
     }
