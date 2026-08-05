@@ -39,11 +39,31 @@ Redis idempotency is the first line, but not the only one:
 - Kafka message **keys** (`bookingId`) keep a booking's events on one partition,
   preserving order and making per-key reasoning valid.
 
+## Failure mode: fail-open on Redis outage
+
+If Redis is unavailable, `IdempotencyGuard.firstDelivery()` catches the
+exception, logs the error, and **returns `true` (allow processing)**. This is a
+deliberate fail-open choice:
+
+- **Dropping a payment event is worse than a potential duplicate.** A lost
+  payment is silent and hard to diagnose; a duplicate charge is caught by the
+  aggregate's second line of defence (see below) and surfaced in logs/metrics.
+- The aggregate state guard makes the duplicate survivable: `MarkBookingPaid` on
+  an already-`PAID` booking is rejected with an `IllegalStateException`, so the
+  duplicate command results in a logged rejection, not a double transition.
+- Fail-closed (returning `false`) would silently route every event to the DLT
+  during a Redis outage, stalling all payments with no user-visible error until
+  manual DLT replay.
+
+The trade-off: genuine first-deliveries processed during a Redis outage are not
+recorded in the dedup store, so if Kafka redelivers them after Redis recovers,
+the duplicate might slip through. In practice this window is narrow and the
+aggregate guard provides a safety net.
+
 ## Consequences
 
-- Redis is now on the critical path for payment; its availability matters. A
-  Redis outage should fail closed (do not process) rather than risk double
-  charges — noted as a hardening item.
+- Redis is on the critical path for deduplication but not for payment liveness;
+  a Redis outage degrades dedup guarantees rather than halting payment processing.
 - The guard dedups on `eventId`, not business key, so a genuinely new event for
   the same booking is still processed.
 
