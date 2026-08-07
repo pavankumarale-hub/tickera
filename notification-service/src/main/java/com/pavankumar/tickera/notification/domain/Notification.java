@@ -22,6 +22,7 @@ public class Notification {
 
     private String channel;
     private String message;
+    @Column(name = "created_at")
     private Instant createdAt;
 
     public Notification() {

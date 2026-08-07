@@ -28,6 +28,7 @@ public class PaymentSummary {
     private PaymentStatus status;
 
     private String reason;
+    @Column(name = "created_at")
     private Instant createdAt;
 
     public PaymentSummary() {

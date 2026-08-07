@@ -36,6 +36,7 @@ public class BookingSummary implements Serializable {
     @Column(name = "payment_id")
     private String paymentId;
 
+    @Column(name = "updated_at")
     private Instant updatedAt;
 
     public BookingSummary() {
