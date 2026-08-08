@@ -1,6 +1,5 @@
 package com.pavankumar.tickera.common.events;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -9,20 +8,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * release the held seats).
  */
 public record PaymentFailedIntegrationEvent(
-        String eventId,
-        String paymentId,
-        String bookingId,
-        String reason) {
-
-    @JsonCreator
-    public PaymentFailedIntegrationEvent(
-            @JsonProperty("eventId") String eventId,
-            @JsonProperty("paymentId") String paymentId,
-            @JsonProperty("bookingId") String bookingId,
-            @JsonProperty("reason") String reason) {
-        this.eventId = eventId;
-        this.paymentId = paymentId;
-        this.bookingId = bookingId;
-        this.reason = reason;
-    }
+        @JsonProperty("eventId")    String eventId,
+        @JsonProperty("paymentId")  String paymentId,
+        @JsonProperty("bookingId")  String bookingId,
+        @JsonProperty("reason")     String reason) {
 }

@@ -1,6 +1,5 @@
 package com.pavankumar.tickera.common.events;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
@@ -13,29 +12,11 @@ import java.math.BigDecimal;
  * redelivery never double-charges. See {@code docs/adr/0003-idempotency-strategy.md}.
  */
 public record BookingConfirmedIntegrationEvent(
-        String eventId,
-        String bookingId,
-        String customerId,
-        String eventName,
-        int seats,
-        BigDecimal amount,
-        String currency) {
-
-    @JsonCreator
-    public BookingConfirmedIntegrationEvent(
-            @JsonProperty("eventId") String eventId,
-            @JsonProperty("bookingId") String bookingId,
-            @JsonProperty("customerId") String customerId,
-            @JsonProperty("eventName") String eventName,
-            @JsonProperty("seats") int seats,
-            @JsonProperty("amount") BigDecimal amount,
-            @JsonProperty("currency") String currency) {
-        this.eventId = eventId;
-        this.bookingId = bookingId;
-        this.customerId = customerId;
-        this.eventName = eventName;
-        this.seats = seats;
-        this.amount = amount;
-        this.currency = currency;
-    }
+        @JsonProperty("eventId")    String eventId,
+        @JsonProperty("bookingId")  String bookingId,
+        @JsonProperty("customerId") String customerId,
+        @JsonProperty("eventName")  String eventName,
+        @JsonProperty("seats")      int seats,
+        @JsonProperty("amount")     BigDecimal amount,
+        @JsonProperty("currency")   String currency) {
 }
