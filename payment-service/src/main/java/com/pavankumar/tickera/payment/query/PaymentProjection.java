@@ -3,6 +3,8 @@ package com.pavankumar.tickera.payment.query;
 import com.pavankumar.tickera.payment.coreapi.PaymentStatus;
 import com.pavankumar.tickera.payment.coreapi.events.PaymentEvents.PaymentDeclinedEvent;
 import com.pavankumar.tickera.payment.coreapi.events.PaymentEvents.PaymentProcessedEvent;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
 import org.axonframework.eventhandling.Timestamp;
@@ -15,9 +17,20 @@ import java.time.Instant;
 public class PaymentProjection {
 
     private final PaymentSummaryRepository repository;
+    private final Counter completedCounter;
+    private final Counter declinedCounter;
 
-    public PaymentProjection(PaymentSummaryRepository repository) {
+    public PaymentProjection(PaymentSummaryRepository repository, MeterRegistry registry) {
         this.repository = repository;
+        this.completedCounter = transitionCounter(registry, "COMPLETED");
+        this.declinedCounter  = transitionCounter(registry, "DECLINED");
+    }
+
+    private static Counter transitionCounter(MeterRegistry registry, String toStatus) {
+        return Counter.builder("tickera.payment.transitions")
+                .tag("to", toStatus)
+                .description("Cumulative payment state-machine transitions by outcome")
+                .register(registry);
     }
 
     @EventHandler
@@ -30,6 +43,7 @@ public class PaymentProjection {
         summary.setStatus(PaymentStatus.COMPLETED);
         summary.setCreatedAt(timestamp);
         repository.save(summary);
+        completedCounter.increment();
     }
 
     @EventHandler
@@ -41,5 +55,6 @@ public class PaymentProjection {
         summary.setReason(event.reason());
         summary.setCreatedAt(timestamp);
         repository.save(summary);
+        declinedCounter.increment();
     }
 }
