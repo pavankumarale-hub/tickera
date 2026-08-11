@@ -5,7 +5,7 @@
   "title": "Tickera — Service Overview",
   "uid": "tickera-overview",
   "schemaVersion": 39,
-  "version": 2,
+  "version": 3,
   "time": { "from": "now-30m", "to": "now" },
   "refresh": "10s",
   "templating": {
@@ -97,7 +97,7 @@
       "id": 4,
       "title": "Booking State Transitions (transitions/s)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 10 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": { "unit": "ops", "color": { "mode": "palette-classic" } }
@@ -130,7 +130,7 @@
       "title": "Redis Idempotency Guard (events/s)",
       "description": "First-delivery events processed vs. Kafka redeliveries blocked. A non-zero duplicate rate proves the guard is working under at-least-once delivery.",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 10 },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 10 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": { "unit": "ops", "color": { "mode": "palette-classic" } },
@@ -152,6 +152,36 @@
         {
           "expr": "rate(tickera_payment_idempotency_total{result=\"duplicate\"}[1m])",
           "legendFormat": "Duplicates blocked"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Payment Outcomes (transitions/s)",
+      "description": "COMPLETED = payment settled; DECLINED = amount exceeded authorisation limit.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 10 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "ops", "color": { "mode": "palette-classic" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Declined" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }
+            ]
+          }
+        ]
+      },
+      "options": { "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "expr": "rate(tickera_payment_transitions_total{to=\"COMPLETED\"}[1m])",
+          "legendFormat": "Completed"
+        },
+        {
+          "expr": "rate(tickera_payment_transitions_total{to=\"DECLINED\"}[1m])",
+          "legendFormat": "Declined"
         }
       ]
     },
