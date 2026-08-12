@@ -2,6 +2,7 @@ package com.pavankumar.tickera.payment.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,6 +14,7 @@ public class OpenApiConfig {
         return new OpenAPI().info(new Info()
                 .title("Tickera Payment API")
                 .version("v1")
-                .description("Read model over payment outcomes (writes are event-driven via Kafka)."));
+                .description("Read model over payment outcomes (writes are event-driven via Kafka).")
+                .license(new License().name("MIT")));
     }
 }
