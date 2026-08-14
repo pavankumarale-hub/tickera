@@ -1,6 +1,7 @@
 package com.pavankumar.tickera.booking.api.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-public record CancelBookingRequest(@NotBlank String reason) {
+public record CancelBookingRequest(@NotBlank @Size(max = 500) String reason) {
 }
