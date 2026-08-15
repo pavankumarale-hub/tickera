@@ -88,4 +88,23 @@ class BookingAggregateTest {
                 .when(new CancelBookingCommand(ID, "payment timeout"))
                 .expectEvents(new BookingCancelledEvent(ID, "payment timeout"));
     }
+
+    @Test
+    void cannotConfirmAnAlreadyConfirmedBooking() {
+        fixture.given(
+                        new BookingCreatedEvent(ID, "cust-1", "Jazz Night", 2, AMOUNT, "USD"),
+                        new BookingConfirmedEvent(ID, "cust-1", "Jazz Night", 2, AMOUNT, "USD"))
+                .when(new ConfirmBookingCommand(ID))
+                .expectException(IllegalStateException.class);
+    }
+
+    @Test
+    void cannotCancelAnAlreadyCancelledBooking() {
+        fixture.given(
+                        new BookingCreatedEvent(ID, "cust-1", "Jazz Night", 2, AMOUNT, "USD"),
+                        new BookingConfirmedEvent(ID, "cust-1", "Jazz Night", 2, AMOUNT, "USD"),
+                        new BookingCancelledEvent(ID, "payment timeout"))
+                .when(new CancelBookingCommand(ID, "duplicate cancel"))
+                .expectException(IllegalStateException.class);
+    }
 }
