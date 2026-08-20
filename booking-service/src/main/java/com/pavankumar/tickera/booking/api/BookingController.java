@@ -68,16 +68,27 @@ public class BookingController {
     @PostMapping("/{bookingId}/confirm")
     @Operation(summary = "Reserve seats and emit BookingConfirmed (starts the payment saga)")
     public ResponseEntity<BookingResponse> confirm(@PathVariable String bookingId) {
+        // Read current state before the command so we have booking fields for the
+        // response without re-querying the async TrackingEventProcessor projection
+        // (which may not have caught up by the time sendAndWait returns).
+        BookingSummary current = requireBooking(bookingId);
         commandGateway.sendAndWait(new ConfirmBookingCommand(bookingId));
-        return ResponseEntity.accepted().body(BookingResponse.from(requireBooking(bookingId)));
+        return ResponseEntity.accepted().body(new BookingResponse(
+                current.getBookingId(), current.getCustomerId(), current.getEventName(),
+                current.getSeats(), current.getAmount(), current.getCurrency(),
+                BookingStatus.CONFIRMED, null, Instant.now()));
     }
 
     @PostMapping("/{bookingId}/cancel")
     @Operation(summary = "Cancel a booking that has not yet been paid")
     public ResponseEntity<BookingResponse> cancel(@PathVariable String bookingId,
                                                   @Valid @RequestBody CancelBookingRequest request) {
+        BookingSummary current = requireBooking(bookingId);
         commandGateway.sendAndWait(new CancelBookingCommand(bookingId, request.reason()));
-        return ResponseEntity.ok(BookingResponse.from(requireBooking(bookingId)));
+        return ResponseEntity.ok(new BookingResponse(
+                current.getBookingId(), current.getCustomerId(), current.getEventName(),
+                current.getSeats(), current.getAmount(), current.getCurrency(),
+                BookingStatus.CANCELLED, null, Instant.now()));
     }
 
     @GetMapping("/{bookingId}")
