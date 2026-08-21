@@ -27,10 +27,12 @@ import java.util.Optional;
  * the {@link BookingSummary} row and evicts the Redis cache entry so the next
  * read repopulates it.
  *
- * <p>Eviction is done explicitly through the {@link CacheManager} rather than with
+ * <p>Eviction is done explicitly through the {@link Cache} API rather than with
  * {@code @CacheEvict}: Axon invokes event handlers reflectively on the target
  * bean, which bypasses Spring's caching AOP proxy — so the annotation would
  * silently do nothing here. Calling the cache API directly is unambiguous.
+ * The {@code Cache} instance is resolved once at construction time to avoid a
+ * repeated map lookup on every event.
  *
  * <p>Running under a named processing group lets us reset the tracking token and
  * rebuild the whole projection from the event store.
@@ -42,7 +44,7 @@ public class BookingProjection {
     static final String CACHE = "bookings";
 
     private final BookingSummaryRepository repository;
-    private final CacheManager cacheManager;
+    private final Cache bookingsCache;
     private final Counter createdCounter;
     private final Counter confirmedCounter;
     private final Counter paidCounter;
@@ -52,7 +54,7 @@ public class BookingProjection {
                              CacheManager cacheManager,
                              MeterRegistry registry) {
         this.repository = repository;
-        this.cacheManager = cacheManager;
+        this.bookingsCache = cacheManager.getCache(CACHE);
         this.createdCounter   = transitionCounter(registry, "CREATED");
         this.confirmedCounter = transitionCounter(registry, "CONFIRMED");
         this.paidCounter      = transitionCounter(registry, "PAID");
@@ -116,9 +118,8 @@ public class BookingProjection {
     }
 
     private void evict(String bookingId) {
-        Cache cache = cacheManager.getCache(CACHE);
-        if (cache != null) {
-            cache.evict(bookingId);
+        if (bookingsCache != null) {
+            bookingsCache.evict(bookingId);
         }
     }
 
