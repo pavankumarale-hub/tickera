@@ -1,6 +1,5 @@
 package com.pavankumar.tickera.payment.aggregate;
 
-import com.pavankumar.tickera.payment.coreapi.PaymentStatus;
 import com.pavankumar.tickera.payment.coreapi.commands.ProcessPaymentCommand;
 import com.pavankumar.tickera.payment.coreapi.events.PaymentEvents.PaymentDeclinedEvent;
 import com.pavankumar.tickera.payment.coreapi.events.PaymentEvents.PaymentProcessedEvent;
@@ -27,7 +26,6 @@ public class PaymentAggregate {
 
     @AggregateIdentifier
     private String paymentId;
-    private PaymentStatus status;
 
     protected PaymentAggregate() {
         // Required by Axon to reconstruct the aggregate before replay.
@@ -50,12 +48,10 @@ public class PaymentAggregate {
     @EventSourcingHandler
     public void on(PaymentProcessedEvent event) {
         this.paymentId = event.paymentId();
-        this.status = PaymentStatus.COMPLETED;
     }
 
     @EventSourcingHandler
     public void on(PaymentDeclinedEvent event) {
         this.paymentId = event.paymentId();
-        this.status = PaymentStatus.DECLINED;
     }
 }
