@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.Duration;
+
 /**
  * Orchestrates the booking → payment flow and owns the <em>timeout</em>, which
  * is the part a plain chain of Kafka listeners tends to get wrong.
@@ -48,7 +50,7 @@ public class BookingSaga {
         // In production this is minutes; kept short here so the demo shows the
         // compensation path without a long wait. Configurable via deadline duration.
         this.deadlineId = deadlineManager.schedule(
-                java.time.Duration.ofMinutes(15), PAYMENT_DEADLINE, event.bookingId());
+                Duration.ofMinutes(15), PAYMENT_DEADLINE, event.bookingId());
         log.info("Saga started for booking {} — awaiting payment (deadline {})",
                 event.bookingId(), deadlineId);
     }
