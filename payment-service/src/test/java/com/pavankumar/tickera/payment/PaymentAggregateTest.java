@@ -12,6 +12,11 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
+/**
+ * Given/when/then tests over the payment event stream — no Spring, no database,
+ * no Kafka. Each test drives {@link PaymentAggregate} through the Axon fixture
+ * and asserts on the events produced or the exception thrown.
+ */
 @Tag("unit")
 class PaymentAggregateTest {
 
