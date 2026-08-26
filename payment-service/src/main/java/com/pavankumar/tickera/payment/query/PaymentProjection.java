@@ -12,6 +12,14 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 
+/**
+ * Builds the payment read model from the event stream. Each {@code @EventHandler}
+ * persists a {@link PaymentSummary} row so the query side can serve payment
+ * outcomes without touching the aggregate store.
+ *
+ * <p>Running under a named processing group lets us reset the tracking token and
+ * rebuild the entire read model from the event store at any time.
+ */
 @Component
 @ProcessingGroup("payment-projection")
 public class PaymentProjection {
