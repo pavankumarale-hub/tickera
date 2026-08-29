@@ -16,6 +16,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+/**
+ * Unit tests for {@link NotificationListener}. Drives each {@code @KafkaHandler}
+ * directly — no Spring context, no embedded broker — and asserts that the correct
+ * {@link com.pavankumar.tickera.notification.domain.Notification} is persisted for
+ * each integration event type.
+ */
 @Tag("unit")
 class NotificationListenerTest {
 
