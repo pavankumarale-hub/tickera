@@ -9,6 +9,12 @@ import jakarta.persistence.Table;
 
 import java.time.Instant;
 
+/**
+ * Persistent record of a customer-facing notification derived from an
+ * integration event. In a real system these rows would drive email, SMS, or
+ * push delivery; here they are exposed over REST so the event flow is
+ * observable end-to-end.
+ */
 @Entity
 @Table(name = "notification")
 public class Notification {

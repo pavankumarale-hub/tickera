@@ -22,6 +22,8 @@ import java.time.Instant;
 @Table(name = "booking_summary")
 public class BookingSummary implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     @Id
     private String bookingId;
     private String customerId;

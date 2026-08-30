@@ -11,6 +11,12 @@ import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+/**
+ * Denormalised read model for payments. Built by replaying events in
+ * {@link PaymentProjection}; the REST query API reads this table rather than
+ * the aggregate store so payment outcomes are queryable without touching the
+ * event store.
+ */
 @Entity
 @Table(name = "payment_summary")
 public class PaymentSummary {
