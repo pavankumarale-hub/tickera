@@ -6,6 +6,11 @@ import com.pavankumar.tickera.booking.query.BookingSummary;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+/**
+ * Wire representation of a booking returned by the REST API. Carries a snapshot
+ * of the booking's current state so callers never need to inspect the event store
+ * directly.
+ */
 public record BookingResponse(
         String bookingId,
         String customerId,

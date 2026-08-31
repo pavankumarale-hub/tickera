@@ -6,6 +6,10 @@ import com.pavankumar.tickera.payment.query.PaymentSummary;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+/**
+ * Wire representation of a payment outcome returned by the REST API. The
+ * {@code reason} field is populated only for {@code DECLINED} payments.
+ */
 public record PaymentResponse(
         String paymentId,
         String bookingId,

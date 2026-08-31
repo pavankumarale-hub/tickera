@@ -10,6 +10,11 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 
+/**
+ * Validated request body for creating a new booking. Bean Validation constraints
+ * are enforced by Spring MVC before the command reaches the aggregate; violations
+ * are surfaced as 400 responses by {@code ApiExceptionHandler}.
+ */
 public record CreateBookingRequest(
         @NotBlank @Size(max = 100) String customerId,
         @NotBlank @Size(max = 200) String eventName,
