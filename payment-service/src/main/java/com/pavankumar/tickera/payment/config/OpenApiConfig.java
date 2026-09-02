@@ -6,6 +6,9 @@ import io.swagger.v3.oas.models.info.License;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Registers the OpenAPI metadata shown in the Swagger UI for this service.
+ */
 @Configuration
 public class OpenApiConfig {
 

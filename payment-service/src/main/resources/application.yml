@@ -45,6 +45,9 @@ spring:
       properties:
         spring.json.trusted.packages: com.pavankumar.tickera.common.events
 
+# Axon: no Axon Server; events + tokens persist in the service-local Postgres.
+# Jackson serializer keeps events human-readable in the store and avoids
+# XStream allow-list friction on Java 17.
 axon:
   axonserver:
     enabled: false
