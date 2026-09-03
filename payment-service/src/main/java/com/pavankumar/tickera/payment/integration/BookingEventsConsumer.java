@@ -54,6 +54,6 @@ public class BookingEventsConsumer {
 
     @KafkaHandler(isDefault = true)
     public void onUnknown(Object payload) {
-        log.debug("Ignoring unrecognised booking-events payload: {}", payload.getClass());
+        log.debug("Ignoring unrecognised booking-events payload: {}", payload.getClass().getName());
     }
 }

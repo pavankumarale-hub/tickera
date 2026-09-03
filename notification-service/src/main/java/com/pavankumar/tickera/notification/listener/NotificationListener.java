@@ -58,7 +58,7 @@ public class NotificationListener {
 
     @KafkaHandler(isDefault = true)
     public void onUnknown(Object payload) {
-        log.debug("Ignoring unrecognised event: {}", payload.getClass());
+        log.debug("Ignoring unrecognised event: {}", payload.getClass().getName());
     }
 
     private void save(String bookingId, String channel, String message) {

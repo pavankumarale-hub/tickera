@@ -58,6 +58,6 @@ public class PaymentEventsConsumer {
 
     @KafkaHandler(isDefault = true)
     public void onUnknown(Object payload) {
-        log.debug("Ignoring unrecognised payment-events payload: {}", payload.getClass());
+        log.debug("Ignoring unrecognised payment-events payload: {}", payload.getClass().getName());
     }
 }
