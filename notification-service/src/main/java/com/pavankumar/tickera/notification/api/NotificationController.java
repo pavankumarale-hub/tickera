@@ -1,5 +1,6 @@
 package com.pavankumar.tickera.notification.api;
 
+import com.pavankumar.tickera.notification.domain.Notification;
 import com.pavankumar.tickera.notification.domain.NotificationRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,7 +39,7 @@ public class NotificationController {
     @GetMapping
     @Operation(summary = "List notifications, optionally filtered by booking")
     public List<NotificationResponse> list(@RequestParam(required = false) String bookingId) {
-        var notifications = (bookingId == null)
+        List<Notification> notifications = (bookingId == null)
                 ? repository.findAllByOrderByCreatedAtDesc()
                 : repository.findByBookingIdOrderByCreatedAtAsc(bookingId);
         return notifications.stream().map(NotificationResponse::from).toList();
