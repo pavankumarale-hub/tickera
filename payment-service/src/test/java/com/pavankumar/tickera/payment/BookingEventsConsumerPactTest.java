@@ -36,6 +36,8 @@ import static org.assertj.core.api.Assertions.assertThat;
         pactVersion = PactSpecVersion.V3)
 class BookingEventsConsumerPactTest {
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Pact(consumer = "payment-service")
     public MessagePact bookingConfirmed(MessagePactBuilder builder) {
         PactDslJsonBody body = new PactDslJsonBody()
@@ -57,7 +59,7 @@ class BookingEventsConsumerPactTest {
     @PactTestFor(pactMethod = "bookingConfirmed")
     void deserialisesAndAcceptsBookingConfirmed(List<Message> messages) throws Exception {
         Message message = messages.get(0);
-        BookingConfirmedIntegrationEvent event = new ObjectMapper()
+        BookingConfirmedIntegrationEvent event = objectMapper
                 .readValue(message.contentsAsBytes(), BookingConfirmedIntegrationEvent.class);
 
         assertThat(event.bookingId()).isNotBlank();
