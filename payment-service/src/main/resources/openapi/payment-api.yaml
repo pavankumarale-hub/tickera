@@ -44,10 +44,22 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/PaymentResponse' }
-        '404':
-          description: Not found
+        '404': { $ref: '#/components/responses/Problem' }
 components:
+  responses:
+    Problem:
+      description: RFC-7807 problem detail
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetail' }
   schemas:
+    ProblemDetail:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
     PaymentResponse:
       type: object
       properties:
