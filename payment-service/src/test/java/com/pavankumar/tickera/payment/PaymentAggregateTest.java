@@ -20,6 +20,9 @@ import java.math.BigDecimal;
 @Tag("unit")
 class PaymentAggregateTest {
 
+    private static final String CUSTOMER_ID = "cust-1";
+    private static final String CURRENCY    = "USD";
+
     private FixtureConfiguration<PaymentAggregate> fixture;
 
     @BeforeEach
@@ -30,21 +33,21 @@ class PaymentAggregateTest {
     @Test
     void chargeWithinLimit_isProcessed() {
         fixture.givenNoPriorActivity()
-                .when(new ProcessPaymentCommand("p-1", "b-1", "cust-1", new BigDecimal("240.00"), "USD"))
-                .expectEvents(new PaymentProcessedEvent("p-1", "b-1", new BigDecimal("240.00"), "USD"));
+                .when(new ProcessPaymentCommand("p-1", "b-1", CUSTOMER_ID, new BigDecimal("240.00"), CURRENCY))
+                .expectEvents(new PaymentProcessedEvent("p-1", "b-1", new BigDecimal("240.00"), CURRENCY));
     }
 
     @Test
     void chargeOverLimit_isDeclined() {
         fixture.givenNoPriorActivity()
-                .when(new ProcessPaymentCommand("p-2", "b-2", "cust-1", new BigDecimal("5000.00"), "USD"))
+                .when(new ProcessPaymentCommand("p-2", "b-2", CUSTOMER_ID, new BigDecimal("5000.00"), CURRENCY))
                 .expectEvents(new PaymentDeclinedEvent("p-2", "b-2", "Amount exceeds authorisation limit"));
     }
 
     @Test
     void nonPositiveAmount_isRejected() {
         fixture.givenNoPriorActivity()
-                .when(new ProcessPaymentCommand("p-3", "b-3", "cust-1", new BigDecimal("0.00"), "USD"))
+                .when(new ProcessPaymentCommand("p-3", "b-3", CUSTOMER_ID, new BigDecimal("0.00"), CURRENCY))
                 .expectException(IllegalArgumentException.class);
     }
 }
