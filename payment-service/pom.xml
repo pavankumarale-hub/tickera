@@ -20,6 +20,7 @@
             <artifactId>common-events</artifactId>
         </dependency>
 
+        <!-- Web + validation + persistence -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -46,6 +47,8 @@
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
 
+        <!-- Axon: CQRS + event sourcing. Server connector excluded so events and
+             tracking tokens persist in the service-local Postgres (db-per-service). -->
         <dependency>
             <groupId>org.axonframework</groupId>
             <artifactId>axon-spring-boot-starter</artifactId>
@@ -57,6 +60,7 @@
             </exclusions>
         </dependency>
 
+        <!-- Kafka bridges bounded contexts; Redis backs the idempotency guard -->
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
@@ -66,6 +70,7 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
+        <!-- Observability -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
@@ -75,6 +80,8 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- OpenAPI 3.0 / Swagger UI -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
