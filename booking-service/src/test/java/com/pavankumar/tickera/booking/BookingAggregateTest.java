@@ -26,8 +26,8 @@ import java.math.BigDecimal;
 class BookingAggregateTest {
 
     private static final String ID          = "b-1";
-    private static final String CUSTOMER_ID = CUSTOMER_ID;
-    private static final String EVENT_NAME  = EVENT_NAME;
+    private static final String CUSTOMER_ID = "cust-1";
+    private static final String EVENT_NAME  = "Jazz Night";
     private static final int    SEATS       = 2;
     private static final BigDecimal AMOUNT  = new BigDecimal("120.00");
     private static final String CURRENCY    = "USD";
