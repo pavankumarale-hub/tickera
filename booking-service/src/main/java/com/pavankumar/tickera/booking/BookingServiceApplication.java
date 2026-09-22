@@ -3,6 +3,7 @@ package com.pavankumar.tickera.booking;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/** Spring Boot entry point for the booking-service. */
 @SpringBootApplication
 public class BookingServiceApplication {
 
