@@ -25,16 +25,19 @@ import static org.mockito.Mockito.verify;
 @Tag("unit")
 class NotificationListenerTest {
 
+    private static final String BOOKING_ID = "book-1";
+    private static final String CURRENCY   = "USD";
+
     private final NotificationRepository repository = mock(NotificationRepository.class);
     private final NotificationListener listener = new NotificationListener(repository);
 
     @Test
     void bookingConfirmed_persistsAnEmailNotification() {
         listener.on(new BookingConfirmedIntegrationEvent(
-                "evt-0", "book-1", "cust-1", "Jazz Night", 2, new BigDecimal("120.00"), "USD"));
+                "evt-0", BOOKING_ID, "cust-1", "Jazz Night", 2, new BigDecimal("120.00"), CURRENCY));
 
         Notification saved = captureNotification();
-        assertThat(saved.getBookingId()).isEqualTo("book-1");
+        assertThat(saved.getBookingId()).isEqualTo(BOOKING_ID);
         assertThat(saved.getChannel()).isEqualTo("EMAIL");
         assertThat(saved.getMessage()).contains("Jazz Night").contains("2");
     }
@@ -42,10 +45,10 @@ class NotificationListenerTest {
     @Test
     void paymentCompleted_persistsAnEmailNotification() {
         listener.on(new PaymentCompletedIntegrationEvent(
-                "evt-1", "pay-1", "book-1", new BigDecimal("240.00"), "USD"));
+                "evt-1", "pay-1", BOOKING_ID, new BigDecimal("240.00"), CURRENCY));
 
         Notification saved = captureNotification();
-        assertThat(saved.getBookingId()).isEqualTo("book-1");
+        assertThat(saved.getBookingId()).isEqualTo(BOOKING_ID);
         assertThat(saved.getChannel()).isEqualTo("EMAIL");
         assertThat(saved.getMessage()).contains("240.00");
     }
