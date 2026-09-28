@@ -31,6 +31,11 @@ import java.math.BigDecimal;
 @IgnoreNoPactsToVerify   // reactor may build the provider before the consumer regenerates the pact
 class BookingEventsProviderPactTest {
 
+    private static final String EVENT_ID   = "11111111-1111-1111-1111-111111111111";
+    private static final String BOOKING_ID = "22222222-2222-2222-2222-222222222222";
+    private static final String CUSTOMER_ID = "cust-42";
+    private static final String EVENT_NAME  = "Symphony Gala";
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
@@ -53,10 +58,10 @@ class BookingEventsProviderPactTest {
     @au.com.dius.pact.provider.PactVerifyProvider("a booking confirmed event")
     public String bookingConfirmed() throws Exception {
         BookingConfirmedIntegrationEvent event = new BookingConfirmedIntegrationEvent(
-                "11111111-1111-1111-1111-111111111111",
-                "22222222-2222-2222-2222-222222222222",
-                "cust-42",
-                "Symphony Gala",
+                EVENT_ID,
+                BOOKING_ID,
+                CUSTOMER_ID,
+                EVENT_NAME,
                 3,
                 new BigDecimal("240.00"),
                 "USD");
