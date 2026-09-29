@@ -29,6 +29,8 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+  cache:
+    type: none   # Redis is used only for the idempotency guard (StringRedisTemplate), not Spring cache
 
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
