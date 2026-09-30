@@ -2,6 +2,7 @@ package com.pavankumar.tickera.booking;
 
 import com.pavankumar.tickera.booking.api.dto.BookingResponse;
 import com.pavankumar.tickera.booking.api.dto.CreateBookingRequest;
+import com.pavankumar.tickera.booking.coreapi.BookingStatus;
 import com.pavankumar.tickera.common.events.KafkaTopics;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -74,7 +75,7 @@ class BookingFlowIntegrationTest {
 
         BookingResponse created = rest.postForObject("/api/v1/bookings", request, BookingResponse.class);
         assertThat(created).isNotNull();
-        assertThat(created.status().name()).isEqualTo("CREATED");
+        assertThat(created.status()).isEqualTo(BookingStatus.CREATED);
         String id = created.bookingId();
 
         try (KafkaConsumer<String, String> consumer = bookingEventsConsumer()) {
@@ -84,7 +85,7 @@ class BookingFlowIntegrationTest {
             await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
                 BookingResponse fetched =
                         rest.getForObject("/api/v1/bookings/{id}", BookingResponse.class, id);
-                assertThat(fetched.status().name()).isEqualTo("CONFIRMED");
+                assertThat(fetched.status()).isEqualTo(BookingStatus.CONFIRMED);
             });
 
             // integration event reached Kafka
