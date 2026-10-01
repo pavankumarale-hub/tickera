@@ -49,7 +49,6 @@ public class BookingIntegrationEventPublisher {
                     if (ex != null) {
                         log.error("Failed to publish BookingConfirmed for booking {}: {}",
                                 event.bookingId(), ex.getMessage(), ex);
-                        throw new RuntimeException("Kafka publish failed for booking " + event.bookingId(), ex);
                     }
                     log.info("Published BookingConfirmed integration event for booking {}", event.bookingId());
                 });
