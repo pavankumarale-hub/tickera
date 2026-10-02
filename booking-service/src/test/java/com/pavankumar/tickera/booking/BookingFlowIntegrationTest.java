@@ -48,6 +48,8 @@ import static org.awaitility.Awaitility.await;
         })
 class BookingFlowIntegrationTest {
 
+    private static final Duration AWAIT_TIMEOUT = Duration.ofSeconds(10);
+
     @Container
     static final PostgreSQLContainer<?> POSTGRES =
             new PostgreSQLContainer<>("postgres:16-alpine")
@@ -82,14 +84,14 @@ class BookingFlowIntegrationTest {
             rest.postForObject("/api/v1/bookings/{id}/confirm", null, BookingResponse.class, id);
 
             // read model catches up (projection is eventually consistent)
-            await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
+            await().atMost(AWAIT_TIMEOUT).untilAsserted(() -> {
                 BookingResponse fetched =
                         rest.getForObject("/api/v1/bookings/{id}", BookingResponse.class, id);
                 assertThat(fetched.status()).isEqualTo(BookingStatus.CONFIRMED);
             });
 
             // integration event reached Kafka
-            await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
+            await().atMost(AWAIT_TIMEOUT).untilAsserted(() -> {
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(500));
                 assertThat(records).extracting(ConsumerRecord::key).contains(id);
             });
