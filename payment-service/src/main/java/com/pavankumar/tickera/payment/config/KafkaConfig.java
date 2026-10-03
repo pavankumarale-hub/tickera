@@ -19,7 +19,7 @@ import org.springframework.util.backoff.ExponentialBackOff;
 public class KafkaConfig {
 
     private static final int PARTITIONS = 3;
-    private static final short REPLICAS = 1;
+    private static final short REPLICAS = 1;   // increase to 3 in a multi-broker cluster
 
     @Bean
     public NewTopic bookingEventsTopic() {
@@ -53,6 +53,10 @@ public class KafkaConfig {
                 .build();
     }
 
+    /**
+     * Applies to all {@code @KafkaListener} containers in this service.
+     * Three retries with exponential backoff; exhausted records go to the DLT.
+     */
     @Bean
     public CommonErrorHandler kafkaErrorHandler(KafkaOperations<?, ?> kafkaTemplate) {
         DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate);
