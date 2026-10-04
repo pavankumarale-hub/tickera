@@ -41,7 +41,7 @@ import java.util.Optional;
 @ProcessingGroup("booking-projection")
 public class BookingProjection {
 
-    static final String CACHE = "bookings";
+    public static final String CACHE = "bookings";
 
     private final BookingSummaryRepository repository;
     private final Cache bookingsCache;

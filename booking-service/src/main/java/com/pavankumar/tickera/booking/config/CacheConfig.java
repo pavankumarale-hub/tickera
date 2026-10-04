@@ -1,5 +1,6 @@
 package com.pavankumar.tickera.booking.config;
 
+import com.pavankumar.tickera.booking.query.BookingProjection;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +28,6 @@ public class CacheConfig {
 
         return builder -> builder
                 .enableStatistics()
-                .withCacheConfiguration("bookings", bookingsConfig);
+                .withCacheConfiguration(BookingProjection.CACHE, bookingsConfig);
     }
 }

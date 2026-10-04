@@ -26,7 +26,7 @@ public class BookingQueryService {
         this.queryGateway = queryGateway;
     }
 
-    @Cacheable(cacheNames = "bookings", key = "#bookingId", unless = "#result == null")
+    @Cacheable(cacheNames = BookingProjection.CACHE, key = "#bookingId", unless = "#result == null")
     public BookingSummary findById(String bookingId) {
         return queryGateway.query(
                 new FindBookingByIdQuery(bookingId),
