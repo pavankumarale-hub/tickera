@@ -38,6 +38,8 @@ public class BookingSaga {
 
     private static final Logger log = LoggerFactory.getLogger(BookingSaga.class);
     private static final String PAYMENT_DEADLINE = "payment-timeout";
+    /** Swap for a shorter value in dev/demo to exercise the compensation path quickly. */
+    private static final Duration PAYMENT_TIMEOUT = Duration.ofMinutes(15);
 
     @Autowired
     private transient CommandGateway commandGateway;
@@ -47,10 +49,8 @@ public class BookingSaga {
     @StartSaga
     @SagaEventHandler(associationProperty = "bookingId")
     public void on(BookingConfirmedEvent event, DeadlineManager deadlineManager) {
-        // In production this is minutes; kept short here so the demo shows the
-        // compensation path without a long wait. Configurable via deadline duration.
         this.deadlineId = deadlineManager.schedule(
-                Duration.ofMinutes(15), PAYMENT_DEADLINE, event.bookingId());
+                PAYMENT_TIMEOUT, PAYMENT_DEADLINE, event.bookingId());
         log.info("Saga started for booking {} — awaiting payment (deadline {})",
                 event.bookingId(), deadlineId);
     }
