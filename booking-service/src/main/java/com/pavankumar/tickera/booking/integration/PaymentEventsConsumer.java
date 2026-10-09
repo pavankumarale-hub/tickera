@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
  * payment event is a no-op rather than a double transition.
  */
 @Component
-@KafkaListener(topics = KafkaTopics.PAYMENT_EVENTS, groupId = "booking-service")
+@KafkaListener(topics = KafkaTopics.PAYMENT_EVENTS)
 public class PaymentEventsConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentEventsConsumer.class);

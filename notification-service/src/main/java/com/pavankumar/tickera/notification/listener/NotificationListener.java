@@ -24,8 +24,7 @@ import java.time.Instant;
  * persisted and exposed over REST so the event flow is observable end-to-end.
  */
 @Component
-@KafkaListener(topics = {KafkaTopics.BOOKING_EVENTS, KafkaTopics.PAYMENT_EVENTS},
-        groupId = "notification-service")
+@KafkaListener(topics = {KafkaTopics.BOOKING_EVENTS, KafkaTopics.PAYMENT_EVENTS})
 public class NotificationListener {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationListener.class);

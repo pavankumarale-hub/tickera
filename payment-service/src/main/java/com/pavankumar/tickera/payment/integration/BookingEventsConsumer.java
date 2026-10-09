@@ -19,7 +19,7 @@ import java.util.UUID;
  * second charge.
  */
 @Component
-@KafkaListener(topics = KafkaTopics.BOOKING_EVENTS, groupId = "payment-service")
+@KafkaListener(topics = KafkaTopics.BOOKING_EVENTS)
 public class BookingEventsConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(BookingEventsConsumer.class);
