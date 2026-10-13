@@ -23,6 +23,7 @@ public class PaymentAggregate {
 
     /** Stubbed authorisation ceiling — charges above this are "declined". */
     private static final BigDecimal AUTH_LIMIT = new BigDecimal("1000.00");
+    public static final String DECLINE_REASON_LIMIT = "Amount exceeds authorisation limit";
 
     @AggregateIdentifier
     private String paymentId;
@@ -38,7 +39,7 @@ public class PaymentAggregate {
         }
         if (cmd.amount().compareTo(AUTH_LIMIT) > 0) {
             apply(new PaymentDeclinedEvent(cmd.paymentId(), cmd.bookingId(),
-                    "Amount exceeds authorisation limit"));
+                    DECLINE_REASON_LIMIT));
         } else {
             apply(new PaymentProcessedEvent(cmd.paymentId(), cmd.bookingId(),
                     cmd.amount(), cmd.currency()));

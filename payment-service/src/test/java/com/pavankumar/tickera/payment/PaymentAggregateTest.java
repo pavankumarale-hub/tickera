@@ -2,6 +2,7 @@ package com.pavankumar.tickera.payment;
 
 import com.pavankumar.tickera.payment.aggregate.PaymentAggregate;
 import com.pavankumar.tickera.payment.coreapi.commands.ProcessPaymentCommand;
+import static com.pavankumar.tickera.payment.aggregate.PaymentAggregate.DECLINE_REASON_LIMIT;
 import com.pavankumar.tickera.payment.coreapi.events.PaymentEvents.PaymentDeclinedEvent;
 import com.pavankumar.tickera.payment.coreapi.events.PaymentEvents.PaymentProcessedEvent;
 import org.axonframework.test.aggregate.AggregateTestFixture;
@@ -41,7 +42,7 @@ class PaymentAggregateTest {
     void chargeOverLimit_isDeclined() {
         fixture.givenNoPriorActivity()
                 .when(new ProcessPaymentCommand("p-2", "b-2", CUSTOMER_ID, new BigDecimal("5000.00"), CURRENCY))
-                .expectEvents(new PaymentDeclinedEvent("p-2", "b-2", "Amount exceeds authorisation limit"));
+                .expectEvents(new PaymentDeclinedEvent("p-2", "b-2", DECLINE_REASON_LIMIT));
     }
 
     @Test
