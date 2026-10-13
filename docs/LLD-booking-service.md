@@ -106,7 +106,7 @@ contains valid transitions.
 |---------|----------|
 | Illegal transition | Aggregate throws → `ApiExceptionHandler` → 409 Conflict |
 | Bad input | Bean Validation / aggregate guard → 400 |
-| Kafka publish transient failure | Isolated in `integration-publisher` processing group; a tracking processor retries from its token without affecting the projection |
+| Kafka publish transient failure | Isolated in `booking-integration-publisher` processing group; a tracking processor retries from its token without affecting the projection |
 | Duplicate payment event | Aggregate state guard makes `MarkBookingPaid` on a PAID booking a no-op |
 | Lost payment reply | Saga deadline → compensation |
 

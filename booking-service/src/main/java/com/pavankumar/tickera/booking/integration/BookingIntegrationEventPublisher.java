@@ -23,7 +23,7 @@ import java.util.UUID;
  * downstream consumers use as their idempotency key.
  */
 @Component
-@ProcessingGroup("integration-publisher")
+@ProcessingGroup("booking-integration-publisher")
 public class BookingIntegrationEventPublisher {
 
     private static final Logger log = LoggerFactory.getLogger(BookingIntegrationEventPublisher.class);
