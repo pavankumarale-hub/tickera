@@ -14,6 +14,11 @@ import org.springframework.util.backoff.ExponentialBackOff;
 @Configuration
 public class KafkaConfig {
 
+    /**
+     * Applies to all {@code @KafkaListener} containers in this service.
+     * Three retries with exponential backoff; exhausted records are logged and
+     * skipped — no DLT because this service has no producer.
+     */
     @Bean
     public CommonErrorHandler kafkaErrorHandler() {
         ExponentialBackOff backOff = new ExponentialBackOff(1_000L, 2.0);
