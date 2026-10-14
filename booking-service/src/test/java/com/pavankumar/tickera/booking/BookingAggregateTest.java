@@ -25,12 +25,14 @@ import java.math.BigDecimal;
 @Tag("unit")
 class BookingAggregateTest {
 
-    private static final String ID          = "b-1";
-    private static final String CUSTOMER_ID = "cust-1";
-    private static final String EVENT_NAME  = "Jazz Night";
-    private static final int    SEATS       = 2;
-    private static final BigDecimal AMOUNT  = new BigDecimal("120.00");
-    private static final String CURRENCY    = "USD";
+    private static final String ID           = "b-1";
+    private static final String CUSTOMER_ID  = "cust-1";
+    private static final String EVENT_NAME   = "Jazz Night";
+    private static final int    SEATS        = 2;
+    private static final BigDecimal AMOUNT   = new BigDecimal("120.00");
+    private static final String CURRENCY     = "USD";
+    private static final String PAYMENT_ID   = "pay-9";
+    private static final String CANCEL_REASON = "payment timeout";
 
     private FixtureConfiguration<BookingAggregate> fixture;
 
@@ -63,14 +65,14 @@ class BookingAggregateTest {
         fixture.given(
                         new BookingCreatedEvent(ID, CUSTOMER_ID, EVENT_NAME, SEATS, AMOUNT, CURRENCY),
                         new BookingConfirmedEvent(ID, CUSTOMER_ID, EVENT_NAME, SEATS, AMOUNT, CURRENCY))
-                .when(new MarkBookingPaidCommand(ID, "pay-9"))
-                .expectEvents(new BookingPaidEvent(ID, "pay-9"));
+                .when(new MarkBookingPaidCommand(ID, PAYMENT_ID))
+                .expectEvents(new BookingPaidEvent(ID, PAYMENT_ID));
     }
 
     @Test
     void cannotPayABookingThatWasNeverConfirmed() {
         fixture.given(new BookingCreatedEvent(ID, CUSTOMER_ID, EVENT_NAME, SEATS, AMOUNT, CURRENCY))
-                .when(new MarkBookingPaidCommand(ID, "pay-9"))
+                .when(new MarkBookingPaidCommand(ID, PAYMENT_ID))
                 .expectException(IllegalStateException.class);
     }
 
@@ -79,7 +81,7 @@ class BookingAggregateTest {
         fixture.given(
                         new BookingCreatedEvent(ID, CUSTOMER_ID, EVENT_NAME, SEATS, AMOUNT, CURRENCY),
                         new BookingConfirmedEvent(ID, CUSTOMER_ID, EVENT_NAME, SEATS, AMOUNT, CURRENCY),
-                        new BookingPaidEvent(ID, "pay-9"))
+                        new BookingPaidEvent(ID, PAYMENT_ID))
                 .when(new CancelBookingCommand(ID, "changed my mind"))
                 .expectException(IllegalStateException.class);
     }
@@ -89,8 +91,8 @@ class BookingAggregateTest {
         fixture.given(
                         new BookingCreatedEvent(ID, CUSTOMER_ID, EVENT_NAME, SEATS, AMOUNT, CURRENCY),
                         new BookingConfirmedEvent(ID, CUSTOMER_ID, EVENT_NAME, SEATS, AMOUNT, CURRENCY))
-                .when(new CancelBookingCommand(ID, "payment timeout"))
-                .expectEvents(new BookingCancelledEvent(ID, "payment timeout"));
+                .when(new CancelBookingCommand(ID, CANCEL_REASON))
+                .expectEvents(new BookingCancelledEvent(ID, CANCEL_REASON));
     }
 
     @Test
@@ -107,7 +109,7 @@ class BookingAggregateTest {
         fixture.given(
                         new BookingCreatedEvent(ID, CUSTOMER_ID, EVENT_NAME, SEATS, AMOUNT, CURRENCY),
                         new BookingConfirmedEvent(ID, CUSTOMER_ID, EVENT_NAME, SEATS, AMOUNT, CURRENCY),
-                        new BookingCancelledEvent(ID, "payment timeout"))
+                        new BookingCancelledEvent(ID, CANCEL_REASON))
                 .when(new CancelBookingCommand(ID, "duplicate cancel"))
                 .expectException(IllegalStateException.class);
     }
