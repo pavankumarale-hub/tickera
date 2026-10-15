@@ -31,10 +31,13 @@ import java.math.BigDecimal;
 @IgnoreNoPactsToVerify   // reactor may build the provider before the consumer regenerates the pact
 class BookingEventsProviderPactTest {
 
-    private static final String EVENT_ID   = "11111111-1111-1111-1111-111111111111";
-    private static final String BOOKING_ID = "22222222-2222-2222-2222-222222222222";
-    private static final String CUSTOMER_ID = "cust-42";
-    private static final String EVENT_NAME  = "Symphony Gala";
+    private static final String     EVENT_ID   = "11111111-1111-1111-1111-111111111111";
+    private static final String     BOOKING_ID = "22222222-2222-2222-2222-222222222222";
+    private static final String     CUSTOMER_ID = "cust-42";
+    private static final String     EVENT_NAME  = "Symphony Gala";
+    private static final int        SEATS       = 3;
+    private static final BigDecimal AMOUNT      = new BigDecimal("240.00");
+    private static final String     CURRENCY    = "USD";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -62,9 +65,9 @@ class BookingEventsProviderPactTest {
                 BOOKING_ID,
                 CUSTOMER_ID,
                 EVENT_NAME,
-                3,
-                new BigDecimal("240.00"),
-                "USD");
+                SEATS,
+                AMOUNT,
+                CURRENCY);
         return objectMapper.writeValueAsString(event);
     }
 }
