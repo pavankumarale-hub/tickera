@@ -36,6 +36,12 @@ import static org.assertj.core.api.Assertions.assertThat;
         pactVersion = PactSpecVersion.V3)
 class BookingEventsConsumerPactTest {
 
+    private static final String CUSTOMER_ID = "cust-42";
+    private static final String EVENT_NAME  = "Symphony Gala";
+    private static final int    SEATS       = 3;
+    private static final double AMOUNT      = 240.00;
+    private static final String CURRENCY    = "USD";
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Pact(consumer = "payment-service")
@@ -43,11 +49,11 @@ class BookingEventsConsumerPactTest {
         PactDslJsonBody body = new PactDslJsonBody()
                 .uuid("eventId")
                 .uuid("bookingId")
-                .stringType("customerId", "cust-42")
-                .stringType("eventName", "Symphony Gala")
-                .integerType("seats", 3)
-                .decimalType("amount", 240.00)
-                .stringType("currency", "USD");
+                .stringType("customerId", CUSTOMER_ID)
+                .stringType("eventName", EVENT_NAME)
+                .integerType("seats", SEATS)
+                .decimalType("amount", AMOUNT)
+                .stringType("currency", CURRENCY);
 
         return builder
                 .expectsToReceive("a booking confirmed event")
