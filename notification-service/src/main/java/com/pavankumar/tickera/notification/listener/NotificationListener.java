@@ -29,6 +29,9 @@ public class NotificationListener {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationListener.class);
 
+    private static final String EMAIL = "EMAIL";
+    private static final String SMS   = "SMS";
+
     private final NotificationRepository repository;
 
     public NotificationListener(NotificationRepository repository) {
@@ -37,21 +40,21 @@ public class NotificationListener {
 
     @KafkaHandler
     public void on(BookingConfirmedIntegrationEvent event) {
-        save(event.bookingId(), "EMAIL",
+        save(event.bookingId(), EMAIL,
                 "Your booking for '%s' (%d seat(s)) is confirmed — completing payment."
                         .formatted(event.eventName(), event.seats()));
     }
 
     @KafkaHandler
     public void on(PaymentCompletedIntegrationEvent event) {
-        save(event.bookingId(), "EMAIL",
+        save(event.bookingId(), EMAIL,
                 "Payment of %s %s received — your tickets are secured!"
                         .formatted(event.amount(), event.currency()));
     }
 
     @KafkaHandler
     public void on(PaymentFailedIntegrationEvent event) {
-        save(event.bookingId(), "SMS",
+        save(event.bookingId(), SMS,
                 "Payment failed (%s). Your booking will be released."
                         .formatted(event.reason()));
     }
