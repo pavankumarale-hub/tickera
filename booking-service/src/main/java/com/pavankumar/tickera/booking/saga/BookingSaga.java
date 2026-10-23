@@ -38,6 +38,7 @@ public class BookingSaga {
 
     private static final Logger log = LoggerFactory.getLogger(BookingSaga.class);
     private static final String PAYMENT_DEADLINE = "payment-timeout";
+    private static final String TIMEOUT_REASON   = "Payment not received in time";
     /** Swap for a shorter value in dev/demo to exercise the compensation path quickly. */
     private static final Duration PAYMENT_TIMEOUT = Duration.ofMinutes(15);
 
@@ -73,7 +74,7 @@ public class BookingSaga {
     @DeadlineHandler(deadlineName = PAYMENT_DEADLINE)
     public void onPaymentTimeout(String bookingId) {
         log.warn("Payment deadline elapsed for booking {} — compensating", bookingId);
-        commandGateway.send(new CancelBookingCommand(bookingId, "Payment not received in time"))
+        commandGateway.send(new CancelBookingCommand(bookingId, TIMEOUT_REASON))
                 .exceptionally(ex -> {
                     log.error("Compensation CancelBooking rejected for booking {}: {}",
                             bookingId, ex.getMessage());
