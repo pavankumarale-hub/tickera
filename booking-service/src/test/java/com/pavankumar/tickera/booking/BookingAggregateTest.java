@@ -31,8 +31,10 @@ class BookingAggregateTest {
     private static final int    SEATS        = 2;
     private static final BigDecimal AMOUNT   = new BigDecimal("120.00");
     private static final String CURRENCY     = "USD";
-    private static final String PAYMENT_ID   = "pay-9";
-    private static final String CANCEL_REASON = "payment timeout";
+    private static final String PAYMENT_ID      = "pay-9";
+    private static final String CANCEL_REASON   = "payment timeout";
+    private static final String REASON_CHANGED  = "changed my mind";
+    private static final String REASON_DUPLICATE = "duplicate cancel";
 
     private FixtureConfiguration<BookingAggregate> fixture;
 
@@ -82,7 +84,7 @@ class BookingAggregateTest {
                         new BookingCreatedEvent(ID, CUSTOMER_ID, EVENT_NAME, SEATS, AMOUNT, CURRENCY),
                         new BookingConfirmedEvent(ID, CUSTOMER_ID, EVENT_NAME, SEATS, AMOUNT, CURRENCY),
                         new BookingPaidEvent(ID, PAYMENT_ID))
-                .when(new CancelBookingCommand(ID, "changed my mind"))
+                .when(new CancelBookingCommand(ID, REASON_CHANGED))
                 .expectException(IllegalStateException.class);
     }
 
@@ -110,7 +112,7 @@ class BookingAggregateTest {
                         new BookingCreatedEvent(ID, CUSTOMER_ID, EVENT_NAME, SEATS, AMOUNT, CURRENCY),
                         new BookingConfirmedEvent(ID, CUSTOMER_ID, EVENT_NAME, SEATS, AMOUNT, CURRENCY),
                         new BookingCancelledEvent(ID, CANCEL_REASON))
-                .when(new CancelBookingCommand(ID, "duplicate cancel"))
+                .when(new CancelBookingCommand(ID, REASON_DUPLICATE))
                 .expectException(IllegalStateException.class);
     }
 }
