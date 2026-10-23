@@ -50,6 +50,12 @@ class BookingFlowIntegrationTest {
 
     private static final Duration AWAIT_TIMEOUT = Duration.ofSeconds(10);
 
+    private static final String     CUSTOMER_ID = "cust-42";
+    private static final String     EVENT_NAME  = "Symphony Gala";
+    private static final int        SEATS       = 3;
+    private static final BigDecimal AMOUNT      = new BigDecimal("240.00");
+    private static final String     CURRENCY    = "USD";
+
     @Container
     static final PostgreSQLContainer<?> POSTGRES =
             new PostgreSQLContainer<>("postgres:16-alpine")
@@ -73,7 +79,7 @@ class BookingFlowIntegrationTest {
     @Test
     void confirmingABooking_updatesReadModel_andPublishesIntegrationEvent() {
         CreateBookingRequest request =
-                new CreateBookingRequest("cust-42", "Symphony Gala", 3, new BigDecimal("240.00"), "USD");
+                new CreateBookingRequest(CUSTOMER_ID, EVENT_NAME, SEATS, AMOUNT, CURRENCY);
 
         BookingResponse created = rest.postForObject("/api/v1/bookings", request, BookingResponse.class);
         assertThat(created).isNotNull();
