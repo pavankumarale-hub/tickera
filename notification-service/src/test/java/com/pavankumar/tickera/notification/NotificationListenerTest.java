@@ -27,6 +27,8 @@ class NotificationListenerTest {
 
     private static final String BOOKING_ID = "book-1";
     private static final String CURRENCY   = "USD";
+    private static final String EMAIL      = "EMAIL";
+    private static final String SMS        = "SMS";
 
     private final NotificationRepository repository = mock(NotificationRepository.class);
     private final NotificationListener listener = new NotificationListener(repository);
@@ -38,7 +40,7 @@ class NotificationListenerTest {
 
         Notification saved = captureNotification();
         assertThat(saved.getBookingId()).isEqualTo(BOOKING_ID);
-        assertThat(saved.getChannel()).isEqualTo("EMAIL");
+        assertThat(saved.getChannel()).isEqualTo(EMAIL);
         assertThat(saved.getMessage()).contains("Jazz Night").contains("2");
     }
 
@@ -49,7 +51,7 @@ class NotificationListenerTest {
 
         Notification saved = captureNotification();
         assertThat(saved.getBookingId()).isEqualTo(BOOKING_ID);
-        assertThat(saved.getChannel()).isEqualTo("EMAIL");
+        assertThat(saved.getChannel()).isEqualTo(EMAIL);
         assertThat(saved.getMessage()).contains("240.00");
     }
 
@@ -60,7 +62,7 @@ class NotificationListenerTest {
 
         Notification saved = captureNotification();
         assertThat(saved.getBookingId()).isEqualTo("book-2");
-        assertThat(saved.getChannel()).isEqualTo("SMS");
+        assertThat(saved.getChannel()).isEqualTo(SMS);
         assertThat(saved.getMessage()).contains("Card declined");
     }
 
