@@ -36,9 +36,11 @@ import java.util.UUID;
  * contract lives in {@code src/main/resources/openapi/booking-api.yaml}.
  */
 @RestController
-@RequestMapping("/api/v1/bookings")
+@RequestMapping(BookingController.BASE_PATH)
 @Tag(name = "Bookings", description = "Create and track ticket bookings")
 public class BookingController {
+
+    static final String BASE_PATH = "/api/v1/bookings";
 
     private final CommandGateway commandGateway;
     private final BookingQueryService queryService;
@@ -59,7 +61,7 @@ public class BookingController {
         // the TrackingEventProcessor is async, so the read model may not have
         // processed BookingCreatedEvent yet when sendAndWait returns.
         return ResponseEntity
-                .created(URI.create("/api/v1/bookings/" + bookingId))
+                .created(URI.create(BASE_PATH + "/" + bookingId))
                 .body(new BookingResponse(bookingId, request.customerId(), request.eventName(),
                         request.seats(), request.amount(), request.currency(),
                         BookingStatus.CREATED, null, Instant.now()));
