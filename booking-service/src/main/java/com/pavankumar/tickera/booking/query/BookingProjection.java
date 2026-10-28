@@ -55,10 +55,10 @@ public class BookingProjection {
                              MeterRegistry registry) {
         this.repository = repository;
         this.bookingsCache = cacheManager.getCache(CACHE);
-        this.createdCounter   = transitionCounter(registry, "CREATED");
-        this.confirmedCounter = transitionCounter(registry, "CONFIRMED");
-        this.paidCounter      = transitionCounter(registry, "PAID");
-        this.cancelledCounter = transitionCounter(registry, "CANCELLED");
+        this.createdCounter   = transitionCounter(registry, BookingStatus.CREATED.name());
+        this.confirmedCounter = transitionCounter(registry, BookingStatus.CONFIRMED.name());
+        this.paidCounter      = transitionCounter(registry, BookingStatus.PAID.name());
+        this.cancelledCounter = transitionCounter(registry, BookingStatus.CANCELLED.name());
     }
 
     private static Counter transitionCounter(MeterRegistry registry, String toStatus) {
