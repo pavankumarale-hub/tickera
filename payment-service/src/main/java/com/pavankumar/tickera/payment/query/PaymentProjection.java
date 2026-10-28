@@ -30,8 +30,8 @@ public class PaymentProjection {
 
     public PaymentProjection(PaymentSummaryRepository repository, MeterRegistry registry) {
         this.repository = repository;
-        this.completedCounter = transitionCounter(registry, "COMPLETED");
-        this.declinedCounter  = transitionCounter(registry, "DECLINED");
+        this.completedCounter = transitionCounter(registry, PaymentStatus.COMPLETED.name());
+        this.declinedCounter  = transitionCounter(registry, PaymentStatus.DECLINED.name());
     }
 
     private static Counter transitionCounter(MeterRegistry registry, String toStatus) {
