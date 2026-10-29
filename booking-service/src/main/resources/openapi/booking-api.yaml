@@ -93,6 +93,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/BookingResponse' }
+        '400': { $ref: '#/components/responses/Problem' }
         '404': { $ref: '#/components/responses/Problem' }
         '409': { $ref: '#/components/responses/Problem' }
 components:
