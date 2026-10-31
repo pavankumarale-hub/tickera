@@ -44,8 +44,9 @@ public class PaymentIntegrationEventPublisher {
                     if (ex != null) {
                         log.error("Failed to publish PaymentCompleted for booking {}: {}",
                                 event.bookingId(), ex.getMessage(), ex);
+                    } else {
+                        log.info("Published PaymentCompleted for booking {}", event.bookingId());
                     }
-                    log.info("Published PaymentCompleted for booking {}", event.bookingId());
                 });
     }
 
@@ -61,8 +62,9 @@ public class PaymentIntegrationEventPublisher {
                     if (ex != null) {
                         log.error("Failed to publish PaymentFailed for booking {}: {}",
                                 event.bookingId(), ex.getMessage(), ex);
+                    } else {
+                        log.info("Published PaymentFailed for booking {}", event.bookingId());
                     }
-                    log.info("Published PaymentFailed for booking {}", event.bookingId());
                 });
     }
 }

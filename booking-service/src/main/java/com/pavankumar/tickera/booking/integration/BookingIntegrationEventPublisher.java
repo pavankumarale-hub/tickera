@@ -49,8 +49,9 @@ public class BookingIntegrationEventPublisher {
                     if (ex != null) {
                         log.error("Failed to publish BookingConfirmed for booking {}: {}",
                                 event.bookingId(), ex.getMessage(), ex);
+                    } else {
+                        log.info("Published BookingConfirmed integration event for booking {}", event.bookingId());
                     }
-                    log.info("Published BookingConfirmed integration event for booking {}", event.bookingId());
                 });
     }
 }
