@@ -24,8 +24,9 @@ import java.time.Duration;
 public class IdempotencyGuard {
 
     private static final Logger log = LoggerFactory.getLogger(IdempotencyGuard.class);
-    private static final Duration TTL = Duration.ofHours(24);
-    private static final String KEY_PREFIX = "payment:processed-event:";
+    private static final Duration TTL        = Duration.ofHours(24);
+    private static final String KEY_PREFIX   = "payment:processed-event:";
+    private static final String METRIC_NAME  = "tickera.payment.idempotency";
 
     private final StringRedisTemplate redis;
     private final Counter firstDeliveryCounter;
@@ -33,11 +34,11 @@ public class IdempotencyGuard {
 
     public IdempotencyGuard(StringRedisTemplate redis, MeterRegistry registry) {
         this.redis = redis;
-        this.firstDeliveryCounter = Counter.builder("tickera.payment.idempotency")
+        this.firstDeliveryCounter = Counter.builder(METRIC_NAME)
                 .tag("result", "first_delivery")
                 .description("Kafka events processed for the first time")
                 .register(registry);
-        this.duplicateCounter = Counter.builder("tickera.payment.idempotency")
+        this.duplicateCounter = Counter.builder(METRIC_NAME)
                 .tag("result", "duplicate")
                 .description("Kafka redeliveries blocked by the idempotency guard")
                 .register(registry);
