@@ -24,6 +24,8 @@ import java.time.Instant;
 @ProcessingGroup("payment-projection")
 public class PaymentProjection {
 
+    private static final String METRIC_NAME = "tickera.payment.transitions";
+
     private final PaymentSummaryRepository repository;
     private final Counter completedCounter;
     private final Counter declinedCounter;
@@ -35,7 +37,7 @@ public class PaymentProjection {
     }
 
     private static Counter transitionCounter(MeterRegistry registry, String toStatus) {
-        return Counter.builder("tickera.payment.transitions")
+        return Counter.builder(METRIC_NAME)
                 .tag("to", toStatus)
                 .description("Cumulative payment state-machine transitions by outcome")
                 .register(registry);
