@@ -41,7 +41,8 @@ import java.util.Optional;
 @ProcessingGroup("booking-projection")
 public class BookingProjection {
 
-    public static final String CACHE = "bookings";
+    public static final String CACHE       = "bookings";
+    private static final String METRIC_NAME = "tickera.booking.transitions";
 
     private final BookingSummaryRepository repository;
     private final Cache bookingsCache;
@@ -62,7 +63,7 @@ public class BookingProjection {
     }
 
     private static Counter transitionCounter(MeterRegistry registry, String toStatus) {
-        return Counter.builder("tickera.booking.transitions")
+        return Counter.builder(METRIC_NAME)
                 .tag("to", toStatus)
                 .description("Cumulative booking state-machine transitions by target status")
                 .register(registry);
