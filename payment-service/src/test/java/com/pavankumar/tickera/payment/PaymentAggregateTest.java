@@ -21,8 +21,11 @@ import java.math.BigDecimal;
 @Tag("unit")
 class PaymentAggregateTest {
 
-    private static final String CUSTOMER_ID = "cust-1";
-    private static final String CURRENCY    = "USD";
+    private static final String     CUSTOMER_ID        = "cust-1";
+    private static final String     CURRENCY           = "USD";
+    private static final BigDecimal AMOUNT_WITHIN_LIMIT = new BigDecimal("240.00");
+    private static final BigDecimal AMOUNT_OVER_LIMIT   = new BigDecimal("5000.00");
+    private static final BigDecimal AMOUNT_ZERO         = new BigDecimal("0.00");
 
     private FixtureConfiguration<PaymentAggregate> fixture;
 
@@ -34,21 +37,21 @@ class PaymentAggregateTest {
     @Test
     void chargeWithinLimit_isProcessed() {
         fixture.givenNoPriorActivity()
-                .when(new ProcessPaymentCommand("p-1", "b-1", CUSTOMER_ID, new BigDecimal("240.00"), CURRENCY))
-                .expectEvents(new PaymentProcessedEvent("p-1", "b-1", new BigDecimal("240.00"), CURRENCY));
+                .when(new ProcessPaymentCommand("p-1", "b-1", CUSTOMER_ID, AMOUNT_WITHIN_LIMIT, CURRENCY))
+                .expectEvents(new PaymentProcessedEvent("p-1", "b-1", AMOUNT_WITHIN_LIMIT, CURRENCY));
     }
 
     @Test
     void chargeOverLimit_isDeclined() {
         fixture.givenNoPriorActivity()
-                .when(new ProcessPaymentCommand("p-2", "b-2", CUSTOMER_ID, new BigDecimal("5000.00"), CURRENCY))
+                .when(new ProcessPaymentCommand("p-2", "b-2", CUSTOMER_ID, AMOUNT_OVER_LIMIT, CURRENCY))
                 .expectEvents(new PaymentDeclinedEvent("p-2", "b-2", DECLINE_REASON_LIMIT));
     }
 
     @Test
     void nonPositiveAmount_isRejected() {
         fixture.givenNoPriorActivity()
-                .when(new ProcessPaymentCommand("p-3", "b-3", CUSTOMER_ID, new BigDecimal("0.00"), CURRENCY))
+                .when(new ProcessPaymentCommand("p-3", "b-3", CUSTOMER_ID, AMOUNT_ZERO, CURRENCY))
                 .expectException(IllegalArgumentException.class);
     }
 }
