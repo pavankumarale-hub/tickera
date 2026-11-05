@@ -58,10 +58,10 @@ class NotificationListenerTest {
     @Test
     void paymentFailed_persistsAnSmsNotification() {
         listener.on(new PaymentFailedIntegrationEvent(
-                "evt-2", "pay-2", "book-2", "Card declined"));
+                "evt-2", "pay-2", BOOKING_ID, "Card declined"));
 
         Notification saved = captureNotification();
-        assertThat(saved.getBookingId()).isEqualTo("book-2");
+        assertThat(saved.getBookingId()).isEqualTo(BOOKING_ID);
         assertThat(saved.getChannel()).isEqualTo(SMS);
         assertThat(saved.getMessage()).contains("Card declined");
     }
