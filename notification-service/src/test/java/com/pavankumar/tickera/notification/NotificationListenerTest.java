@@ -25,10 +25,12 @@ import static org.mockito.Mockito.verify;
 @Tag("unit")
 class NotificationListenerTest {
 
-    private static final String BOOKING_ID = "book-1";
-    private static final String CURRENCY   = "USD";
-    private static final String EMAIL      = "EMAIL";
-    private static final String SMS        = "SMS";
+    private static final String BOOKING_ID     = "book-1";
+    private static final String CURRENCY       = "USD";
+    private static final String EMAIL          = "EMAIL";
+    private static final String SMS            = "SMS";
+    private static final String EVENT_NAME     = "Jazz Night";
+    private static final String DECLINE_REASON = "Card declined";
 
     private final NotificationRepository repository = mock(NotificationRepository.class);
     private final NotificationListener listener = new NotificationListener(repository);
@@ -36,12 +38,12 @@ class NotificationListenerTest {
     @Test
     void bookingConfirmed_persistsAnEmailNotification() {
         listener.on(new BookingConfirmedIntegrationEvent(
-                "evt-0", BOOKING_ID, "cust-1", "Jazz Night", 2, new BigDecimal("120.00"), CURRENCY));
+                "evt-0", BOOKING_ID, "cust-1", EVENT_NAME, 2, new BigDecimal("120.00"), CURRENCY));
 
         Notification saved = captureNotification();
         assertThat(saved.getBookingId()).isEqualTo(BOOKING_ID);
         assertThat(saved.getChannel()).isEqualTo(EMAIL);
-        assertThat(saved.getMessage()).contains("Jazz Night").contains("2");
+        assertThat(saved.getMessage()).contains(EVENT_NAME).contains("2");
     }
 
     @Test
@@ -58,12 +60,12 @@ class NotificationListenerTest {
     @Test
     void paymentFailed_persistsAnSmsNotification() {
         listener.on(new PaymentFailedIntegrationEvent(
-                "evt-2", "pay-2", BOOKING_ID, "Card declined"));
+                "evt-2", "pay-2", BOOKING_ID, DECLINE_REASON));
 
         Notification saved = captureNotification();
         assertThat(saved.getBookingId()).isEqualTo(BOOKING_ID);
         assertThat(saved.getChannel()).isEqualTo(SMS);
-        assertThat(saved.getMessage()).contains("Card declined");
+        assertThat(saved.getMessage()).contains(DECLINE_REASON);
     }
 
     private Notification captureNotification() {
