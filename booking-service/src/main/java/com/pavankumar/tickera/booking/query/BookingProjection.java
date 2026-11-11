@@ -38,11 +38,12 @@ import java.util.Optional;
  * rebuild the whole projection from the event store.
  */
 @Component
-@ProcessingGroup("booking-projection")
+@ProcessingGroup(BookingProjection.PROCESSING_GROUP)
 public class BookingProjection {
 
-    public static final String CACHE       = "bookings";
-    private static final String METRIC_NAME = "tickera.booking.transitions";
+    public static final String  PROCESSING_GROUP = "booking-projection";
+    public static final String  CACHE            = "bookings";
+    private static final String METRIC_NAME      = "tickera.booking.transitions";
 
     private final BookingSummaryRepository repository;
     private final Cache bookingsCache;
