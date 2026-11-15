@@ -21,10 +21,11 @@ import java.time.Instant;
  * rebuild the entire read model from the event store at any time.
  */
 @Component
-@ProcessingGroup("payment-projection")
+@ProcessingGroup(PaymentProjection.PROCESSING_GROUP)
 public class PaymentProjection {
 
-    private static final String METRIC_NAME = "tickera.payment.transitions";
+    public static final String  PROCESSING_GROUP = "payment-projection";
+    private static final String METRIC_NAME      = "tickera.payment.transitions";
 
     private final PaymentSummaryRepository repository;
     private final Counter completedCounter;
