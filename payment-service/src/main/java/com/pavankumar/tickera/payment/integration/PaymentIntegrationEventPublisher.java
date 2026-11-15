@@ -20,8 +20,10 @@ import java.util.UUID;
  * ordered on the same partition.
  */
 @Component
-@ProcessingGroup("payment-integration-publisher")
+@ProcessingGroup(PaymentIntegrationEventPublisher.PROCESSING_GROUP)
 public class PaymentIntegrationEventPublisher {
+
+    public static final String PROCESSING_GROUP = "payment-integration-publisher";
 
     private static final Logger log = LoggerFactory.getLogger(PaymentIntegrationEventPublisher.class);
 

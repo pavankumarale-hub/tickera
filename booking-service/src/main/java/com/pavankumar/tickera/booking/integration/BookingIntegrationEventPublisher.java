@@ -23,8 +23,10 @@ import java.util.UUID;
  * downstream consumers use as their idempotency key.
  */
 @Component
-@ProcessingGroup("booking-integration-publisher")
+@ProcessingGroup(BookingIntegrationEventPublisher.PROCESSING_GROUP)
 public class BookingIntegrationEventPublisher {
+
+    public static final String PROCESSING_GROUP = "booking-integration-publisher";
 
     private static final Logger log = LoggerFactory.getLogger(BookingIntegrationEventPublisher.class);
 
