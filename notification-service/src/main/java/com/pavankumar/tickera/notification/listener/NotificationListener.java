@@ -32,6 +32,10 @@ public class NotificationListener {
     private static final String EMAIL = "EMAIL";
     private static final String SMS   = "SMS";
 
+    private static final String MSG_BOOKING_CONFIRMED = "Your booking for '%s' (%d seat(s)) is confirmed — completing payment.";
+    private static final String MSG_PAYMENT_COMPLETED = "Payment of %s %s received — your tickets are secured!";
+    private static final String MSG_PAYMENT_FAILED    = "Payment failed (%s). Your booking will be released.";
+
     private final NotificationRepository repository;
 
     public NotificationListener(NotificationRepository repository) {
@@ -41,22 +45,19 @@ public class NotificationListener {
     @KafkaHandler
     public void on(BookingConfirmedIntegrationEvent event) {
         save(event.bookingId(), EMAIL,
-                "Your booking for '%s' (%d seat(s)) is confirmed — completing payment."
-                        .formatted(event.eventName(), event.seats()));
+                MSG_BOOKING_CONFIRMED.formatted(event.eventName(), event.seats()));
     }
 
     @KafkaHandler
     public void on(PaymentCompletedIntegrationEvent event) {
         save(event.bookingId(), EMAIL,
-                "Payment of %s %s received — your tickets are secured!"
-                        .formatted(event.amount(), event.currency()));
+                MSG_PAYMENT_COMPLETED.formatted(event.amount(), event.currency()));
     }
 
     @KafkaHandler
     public void on(PaymentFailedIntegrationEvent event) {
         save(event.bookingId(), SMS,
-                "Payment failed (%s). Your booking will be released."
-                        .formatted(event.reason()));
+                MSG_PAYMENT_FAILED.formatted(event.reason()));
     }
 
     @KafkaHandler(isDefault = true)
