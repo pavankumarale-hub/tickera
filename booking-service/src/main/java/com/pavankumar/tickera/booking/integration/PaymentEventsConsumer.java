@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 public class PaymentEventsConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentEventsConsumer.class);
+    private static final String CANCEL_REASON_FMT = "Payment failed: %s";
 
     private final CommandGateway commandGateway;
 
@@ -48,7 +49,7 @@ public class PaymentEventsConsumer {
     @KafkaHandler
     public void on(PaymentFailedIntegrationEvent event) {
         log.warn("Payment failed for booking {}: {}", event.bookingId(), event.reason());
-        commandGateway.send(new CancelBookingCommand(event.bookingId(), "Payment failed: " + event.reason()))
+        commandGateway.send(new CancelBookingCommand(event.bookingId(), CANCEL_REASON_FMT.formatted(event.reason())))
                 .exceptionally(ex -> {
                     log.error("CancelBooking command rejected for booking {}: {}",
                             event.bookingId(), ex.getMessage());
