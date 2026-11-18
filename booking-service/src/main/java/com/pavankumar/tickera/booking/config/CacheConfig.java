@@ -20,10 +20,12 @@ import java.time.Duration;
 @EnableCaching
 public class CacheConfig {
 
+    private static final Duration BOOKINGS_TTL = Duration.ofMinutes(5);
+
     @Bean
     public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
         RedisCacheConfiguration bookingsConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(5))
+                .entryTtl(BOOKINGS_TTL)
                 .disableCachingNullValues();
 
         return builder -> builder
