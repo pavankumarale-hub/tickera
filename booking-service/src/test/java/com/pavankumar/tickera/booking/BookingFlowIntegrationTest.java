@@ -48,7 +48,9 @@ import static org.awaitility.Awaitility.await;
         })
 class BookingFlowIntegrationTest {
 
-    private static final Duration AWAIT_TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration AWAIT_TIMEOUT  = Duration.ofSeconds(10);
+    private static final Duration POLL_TIMEOUT   = Duration.ofMillis(500);
+    private static final String   CONSUMER_GROUP = "integration-test";
 
     private static final String     CUSTOMER_ID = "cust-42";
     private static final String     EVENT_NAME  = "Symphony Gala";
@@ -98,7 +100,7 @@ class BookingFlowIntegrationTest {
 
             // integration event reached Kafka
             await().atMost(AWAIT_TIMEOUT).untilAsserted(() -> {
-                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(500));
+                ConsumerRecords<String, String> records = consumer.poll(POLL_TIMEOUT);
                 assertThat(records).extracting(ConsumerRecord::key).contains(id);
             });
         }
@@ -108,7 +110,7 @@ class BookingFlowIntegrationTest {
         Properties props = new Properties();
         props.putAll(Map.of(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,  KAFKA.getBootstrapServers(),
-                ConsumerConfig.GROUP_ID_CONFIG,           "integration-test",
+                ConsumerConfig.GROUP_ID_CONFIG,           CONSUMER_GROUP,
                 ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,  "earliest",
                 ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,   StringDeserializer.class.getName(),
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName()));
